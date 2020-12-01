@@ -4,11 +4,11 @@
 
 class Queen : public Piece {
 public:
-    Queen(Color color) : Piece(color) {};
+    Queen(Color color, const Point &position) : Piece(color, position) {}
 
-    virtual const set<Point> &get_move_vector() override { return move_vector; };
+    [[nodiscard]] const set<Point> &get_move_vector() const override { return move_vector; };
 
-    inline const string get_representation() const override { return "Qn"; };
+    [[nodiscard]] inline string get_representation() const override { return "Qn"; };
 
 private:
     static const set<Point> move_vector;

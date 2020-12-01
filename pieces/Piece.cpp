@@ -4,7 +4,7 @@ const set<Point> Piece::move_vector;
 
 const set<Point> Piece::move_relative;
 
-set<Point> Piece::get_possible_positions(const Point &current, const BoardData &board) {
+set<Point> Piece::get_possible_positions(const Point &current, const BoardData &board) const {
     set<Point> possible_positions;
 
     Point relative;
@@ -33,3 +33,8 @@ set<Point> Piece::get_possible_positions(const Point &current, const BoardData &
 
     return move(possible_positions);
 }
+
+set<Point> Piece::get_threatening_positions(const Point &current, const BoardData &board) const {
+    return move(get_possible_positions(current, board));
+}
+

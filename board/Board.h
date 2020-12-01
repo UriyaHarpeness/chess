@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../config.h"
 #include "../pieces/King.h"
 #include "../pieces/Queen.h"
 #include "../pieces/Rock.h"
@@ -14,15 +15,19 @@
 
 using namespace std;
 
-class Board {
-public:
+namespace colors {
     static const unsigned char black = 0;
     static const unsigned char white = 255;
     static const unsigned char dark_gray = 243;
     static const unsigned char light_gray = 245;
     static const unsigned char dark_green = 28;
     static const unsigned char light_green = 34;
+    static const unsigned char dark_red = 124;
+    static const unsigned char light_red = 160;
+}
 
+class Board {
+public:
     Board();
 
     static string zfill(string str, unsigned int length, char filler);
@@ -39,7 +44,9 @@ public:
 
     [[nodiscard]] map<Point, set<Point>> get_possible_moves(Color color) const;
 
-    void do_move(const Point &source, const Point &destination);
+    [[nodiscard]] set<Point> get_threatened(Color color) const;
+
+    void do_move(unsigned int turn, const Point &source, const Point &destination);
 
 private:
     BoardData m_board;

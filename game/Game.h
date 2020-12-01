@@ -31,7 +31,8 @@ public:
 
     bool play();
 
-
 private:
     Board m_board;
+
+    unsigned int m_turn;
 };

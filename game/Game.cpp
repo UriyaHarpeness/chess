@@ -1,8 +1,9 @@
 #include "Game.h"
 
-Game::Game() : m_board() {}
+Game::Game() : m_board(), m_turn(0) {}
 
-/*char Game::getch() {
+#if SIMULATE
+char Game::getch() {
     struct termios old_settings{}, new_settings{};
 
     tcgetattr(0, &old_settings); //grab old terminal i/o settings
@@ -17,19 +18,26 @@ Game::Game() : m_board() {}
     tcsetattr(0, TCSANOW, &old_settings);
 
     return ch;
-}*/
+}
+#else
 
 char Game::getch() {
     static unsigned int index = 0;
-    string test = "b8 c6 b1 a3 e7 e5 h2 h3 e5";
+    string test = "b8 c6 b1 a3 e7 e5 h2 h3 e5 e4 f2 f3 e4 f3";
     if (index >= test.size())exit(0);
     return test[index++];
 }
+
+#endif // SIMULATE
 
 void Game::turn(bool &quit, Color color) {
     char action;
 
     const map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color);
+
+    m_turn++;
+    cout << endl << (color ? "White" : "Black") << "'s turn" << endl;
+
     m_board.draw_board(possible_moves);
 
     map<Point, set<Point>> matches;
@@ -110,7 +118,7 @@ void Game::turn(bool &quit, Color color) {
             Point destination(x, y);
 
             // todo: not like this
-            m_board.do_move(source, destination);
+            m_board.do_move(m_turn, source, destination);
 
             break;
 
