@@ -2,7 +2,79 @@
 
 Game::Game() : m_board(), m_turn(0) {}
 
+template<class T>
+set<Point> Game::get_keys(const map<Point, T> &mapping) {
+    set<Point> points;
+
+    for_each(mapping.begin(), mapping.end(), [&points](const auto &p) { points.insert(p.first); });
+
+    return move(points);
+}
+
+Point Game::moves_fast_match(const set<Point> &options, char &input) {
+#if AUTOFILL
+    if (options.size() == 1) {
+        cout << (char) (options.begin()->get_x() + 'a') << options.begin()->get_y() + 1 << endl;
+        return *options.begin();
+    }
+#endif // AUTOFILL
+
+    set<Point> matches, final_matches;
+
+    do {
+        do {
+            input = (char) tolower(getch());
+        } while (isspace(input));
+
+        copy_if(options.begin(), options.end(), inserter(matches, matches.end()),
+                [&, input](const auto &point) {
+                    return ((isdigit(input) && (point.get_y() == input - '0' - 1)) ||
+                            (isalpha(input) && (point.get_x() == input - 'a')));
+                });
+    } while (matches.empty());
+
+    cout << input;
+
+#if AUTOFILL
+    if (matches.size() == 1) {
+        cout << (char) (isalpha(input) ? (char) matches.begin()->get_y() + '0' + 1 :
+                        (char) matches.begin()->get_x() + 'a') << endl;
+        return *matches.begin();
+    }
+#endif // AUTOFILL
+
+    do {
+        final_matches.clear();
+
+        do {
+            input = (char) tolower(getch());
+        } while (isspace(input));
+
+        copy_if(matches.begin(), matches.end(), inserter(final_matches, final_matches.end()),
+                [&, input](const auto &point) {
+                    return ((isdigit(input) && (point.get_y() == input - '0' - 1)) ||
+                            (isalpha(input) && (point.get_x() == input - 'a')));
+                });
+    } while (final_matches.size() != 1);
+
+    cout << input << endl;
+
+    return *final_matches.begin();
+}
+
 #if SIMULATE
+
+char Game::getch() {
+    static unsigned int index = 0;
+    // string test = "b8 c6 b1 a3 e7 e5 h2 h3 e5 e4 f2 f3 e4 f3";
+    // string test = "e7 e5 a2 a4 e5 e4 b2 b4 g7 g5 b4 b5 g5 g4 f2 f4 e4 f3";
+    string test = "d7 d5 e2 e3 d5 d4 e3 d4 g8 f6 d4 d5 c7 c5 d5 c6 e8 d7 h2 h4 d8 b6 c6 d6";
+    if (index >= test.size()) exit(0);
+    return test[index++];
+}
+
+#else
+
 char Game::getch() {
     struct termios old_settings{}, new_settings{};
 
@@ -19,28 +91,34 @@ char Game::getch() {
 
     return ch;
 }
-#else
-
-char Game::getch() {
-    static unsigned int index = 0;
-    string test = "b8 c6 b1 a3 e7 e5 h2 h3 e5 e4 f2 f3 e4 f3";
-    if (index >= test.size())exit(0);
-    return test[index++];
-}
 
 #endif // SIMULATE
 
 void Game::turn(bool &quit, Color color) {
-    char action;
-
-    const map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color);
-
     m_turn++;
+    char action;
+    set<Point> options;
+
+    const map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
+    map<Point, map<Point, play>> possible_play_moves;
+    const auto possible_plays = MultiPiece::get_plays(m_board.get_board(), color, m_turn);
+    for (const auto &possible_play : possible_plays) {
+        for (const auto &single_change : possible_play) {
+            if ((single_change.first != nullptr) && (single_change.second != nullptr) &&
+                (single_change.first->get_color() == color)) {
+                possible_play_moves[single_change.first->get_position()][single_change.second->get_position()] = possible_play;
+            }
+        }
+    }
+
+    options = get_keys(possible_moves);
+    auto tmp = get_keys(possible_play_moves);
+    options.insert(tmp.begin(), tmp.end());
+
     cout << endl << (color ? "White" : "Black") << "'s turn" << endl;
 
-    m_board.draw_board(possible_moves);
+    m_board.draw_board(options);
 
-    map<Point, set<Point>> matches;
     set<Point> piece_matches;
 
     cout << "Enter source: ";
@@ -48,9 +126,7 @@ void Game::turn(bool &quit, Color color) {
     // Loop until a valid action has been made.
     while (true) {
         // Get action.
-        do {
-            action = (char) tolower(getch());
-        } while (isspace(action));
+        Point source = Game::moves_fast_match(options, action);
 
         if (action == undo_action) {
             // Undo.
@@ -66,75 +142,33 @@ void Game::turn(bool &quit, Color color) {
             quit = true;
             break;
         } else {
-            // Change base.
-            matches.clear();
-            copy_if(possible_moves.begin(), possible_moves.end(), inserter(matches, matches.end()),
-                    [action](const auto &point) { return point.first.get_x() == action - 'a'; });
-
-            if (matches.empty()) continue;
-
-            cout << action;
-            unsigned char x = action - 'a';
-
-            if (matches.size() == 1) {
-                action = matches.begin()->first.get_y() + 1 + '0';
-            } else {
-                do {
-                    action = (char) tolower(getch());
-                } while (isspace(action) || (possible_moves.find(Point(x, action - '0' - 1)) == possible_moves.end()));
+            options.clear();
+            if (possible_moves.find(source) != possible_moves.end()) {
+                options.insert(possible_moves.at(source).begin(), possible_moves.at(source).end());
             }
-
-            unsigned char y = action - '0' - 1;
-            cout << action << endl;
-            Point source(x, y);
-
-            const auto piece_possible_moves = possible_moves.at({x, y});
-            m_board.draw_board(piece_possible_moves, {x, y});
+            if (possible_play_moves.find(source) != possible_play_moves.end()) {
+                for_each(possible_play_moves.at(source).begin(), possible_play_moves.at(source).end(),
+                         [&options](const auto &option) { options.insert(option.first); });
+            }
+            auto piece_possible_moves_addition = possible_play_moves;
+            m_board.draw_board(options, source, m_turn);
             cout << "Enter destination: ";
 
-            do {
-                piece_matches.clear();
-                action = (char) tolower(getch());
-                copy_if(piece_possible_moves.begin(), piece_possible_moves.end(),
-                        inserter(piece_matches, piece_matches.end()),
-                        [action](const auto &point) { return point.get_x() == action - 'a'; });
-            } while (isspace(action) || piece_matches.empty());
+            Point destination = Game::moves_fast_match(options, action);
 
-            x = action - 'a';
-            cout << action;
-
-            // todo: maybe shorten based on Y axis as well...
-            if (piece_matches.size() == 1) {
-                action = piece_matches.begin()->get_y() + 1 + '0';
+            if ((possible_moves.find(source) != possible_moves.end()) &&
+                (possible_moves.at(source).find(destination) != possible_moves.at(source).end())) {
+                m_board.do_move(m_turn, source, destination);
             } else {
-                do {
-                    action = (char) tolower(getch());
-                } while (isspace(action) ||
-                         (piece_possible_moves.find(Point(x, action - '0' - 1)) == piece_possible_moves.end()));
+                m_board.do_move(possible_play_moves.at(source).at(destination));
             }
-            y = action - '0' - 1;
-            cout << action << endl;
-
-            Point destination(x, y);
-
-            // todo: not like this
-            m_board.do_move(m_turn, source, destination);
 
             break;
-
-            //char x, y;
-            //cout << "Enter new base (x y):" << endl;
-            //cin >> y >> x;
-            //if (!m_board.set_base({x, y})) {
-            //    cout << "Position is not valid, retry: ";
-            //} else {
-            //    break;
-            //}
         }
     }
 }
 
-bool Game::play() {
+bool Game::play_game() {
     // Display title.
     bool quit;
     auto color = WHITE;

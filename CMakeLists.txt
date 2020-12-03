@@ -9,6 +9,8 @@ add_executable(chess main.cpp
         config.h
         game/Game.cpp
         game/Game.h
+        multipiece/MultiPiece.cpp
+        multipiece/MultiPiece.h
         pieces/Bishop.cpp
         pieces/Bishop.h
         pieces/King.cpp

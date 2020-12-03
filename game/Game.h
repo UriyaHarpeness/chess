@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../board/Board.h"
+#include "../multipiece/MultiPiece.h"
 
 #include <algorithm>
 #include <iostream>
@@ -17,6 +18,11 @@ public:
 
     Game();
 
+    template<class T>
+    static set<Point> get_keys(const map<Point, T> &mapping);
+
+    static Point moves_fast_match(const set<Point> &options, char &input);
+
     /**
      * Get single keyboard input without enter.
      *
@@ -29,7 +35,7 @@ public:
 
     void turn(bool &quit, Color color);
 
-    bool play();
+    bool play_game();
 
 private:
     Board m_board;

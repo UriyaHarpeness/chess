@@ -12,7 +12,7 @@ int main() {
     }*/
 
     Game g;
-    g.play();
+    g.play_game();
 
     return 0;
 }

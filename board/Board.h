@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../config.h"
+#include "../multipiece/MultiPiece.h"
 #include "../pieces/King.h"
 #include "../pieces/Queen.h"
 #include "../pieces/Rock.h"
@@ -38,15 +39,19 @@ public:
 
     static void print_char_index(char i);
 
-    void draw_board(const map<Point, set<Point>> &possible_moves) const;
+    void draw_board(const set<Point> &options) const;
 
-    void draw_board(const set<Point> &possible_moves, const Point &chosen) const;
+    void draw_board(const set<Point> &possible_moves, const Point &chosen, unsigned int turn) const;
 
-    [[nodiscard]] map<Point, set<Point>> get_possible_moves(Color color) const;
+    [[nodiscard]] map<Point, set<Point>> get_possible_moves(Color color, unsigned int turn) const;
 
-    [[nodiscard]] set<Point> get_threatened(Color color) const;
+    [[nodiscard]] set<Point> get_threatened(Color color, unsigned int turn) const;
 
     void do_move(unsigned int turn, const Point &source, const Point &destination);
+
+    void do_move(const play &single_play);
+
+    [[nodiscard]] const BoardData &get_board() const { return m_board; };
 
 private:
     BoardData m_board;

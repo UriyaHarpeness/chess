@@ -53,7 +53,7 @@ void Board::print_char_index(const char i) {
     print_colorful({i, ' '}, (i % 2) ? 250 : 237, (i % 2) ? 237 : 250);
 }
 
-void Board::draw_board(const map<Point, set<Point>> &possible_moves) const {
+void Board::draw_board(const set<Point> &options) const {
     cout << "  ";
     for (dimension y = 0; y < SIZE; y++) print_char_index('A' + y);
     cout << endl;
@@ -66,7 +66,7 @@ void Board::draw_board(const map<Point, set<Point>> &possible_moves) const {
                 print_colorful("  ", 0, ((i + j) % 2 ? colors::dark_gray : colors::light_gray));
                 continue;
             }
-            if ((possible_moves.find(Point(j, i)) == possible_moves.end())) {
+            if ((options.find(Point(j, i)) == options.end())) {
                 background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
             } else {
                 background = (i + j) % 2 ? colors::dark_green : colors::light_green;
@@ -84,14 +84,14 @@ void Board::draw_board(const map<Point, set<Point>> &possible_moves) const {
     cout << endl;
 }
 
-void Board::draw_board(const set<Point> &possible_moves, const Point &chosen) const {
+void Board::draw_board(const set<Point> &possible_moves, const Point &chosen, unsigned int turn) const {
     cout << "  ";
     for (dimension y = 0; y < SIZE; y++) print_char_index('A' + y);
     cout << endl;
     unsigned char background;
 
 #if DISPLAY_THREATENED
-    auto threatened = get_threatened(m_board[chosen.get_x()][chosen.get_y()]->get_color());
+    auto threatened = get_threatened(m_board[chosen.get_x()][chosen.get_y()]->get_color(), turn);
 #endif // DISPLAY_THREATENED
 
     for (int i = 0; i < SIZE; i++) {
@@ -130,13 +130,13 @@ void Board::draw_board(const set<Point> &possible_moves, const Point &chosen) co
     cout << endl;
 }
 
-map<Point, set<Point>> Board::get_possible_moves(Color color) const {
+map<Point, set<Point>> Board::get_possible_moves(Color color, unsigned int turn) const {
     map<Point, set<Point>> possible_moves;
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if ((m_board[j][i] == nullptr) || (m_board[j][i]->get_color() != color)) continue;
-            auto piece_possible_moves = m_board[j][i]->get_possible_positions(Point(j, i), m_board);
+            auto piece_possible_moves = m_board[j][i]->get_possible_positions(m_board, turn);
             if (!piece_possible_moves.empty()) {
                 possible_moves[Point(j, i)] = piece_possible_moves;
             }
@@ -146,13 +146,13 @@ map<Point, set<Point>> Board::get_possible_moves(Color color) const {
     return move(possible_moves);
 }
 
-set<Point> Board::get_threatened(Color color) const {
+set<Point> Board::get_threatened(Color color, unsigned int turn) const {
     set<Point> threatened;
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if ((m_board[j][i] == nullptr) || (m_board[j][i]->get_color() == color)) continue;
-            auto piece_possible_moves = m_board[j][i]->get_threatening_positions(Point(j, i), m_board);
+            auto piece_possible_moves = m_board[j][i]->get_threatening_positions(m_board, turn);
             threatened.insert(piece_possible_moves.begin(), piece_possible_moves.end());
         }
     }
@@ -163,4 +163,13 @@ set<Point> Board::get_threatened(Color color) const {
 void Board::do_move(unsigned int turn, const Point &source, const Point &destination) {
     m_board[destination.get_x()][destination.get_y()] = move(m_board[source.get_x()][source.get_y()]);
     m_board[destination.get_x()][destination.get_y()]->do_move(turn, destination);
+}
+
+void Board::do_move(const play &single_play) {
+    for (const auto &move : single_play) {
+        if (move.second != nullptr) {
+            m_board[move.second->get_position().get_x()][move.second->get_position().get_y()] = move.second;
+        }
+        m_board[move.first->get_position().get_x()][move.first->get_position().get_y()] = nullptr;
+    }
 }
