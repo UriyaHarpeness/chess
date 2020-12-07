@@ -13,7 +13,8 @@ set<play> MultiPiece::get_en_passant(const BoardData &board, Color color, unsign
                 if (!en_passant_point.in_positive_range(SIZE, SIZE)) continue;
                 auto en_passant = board[en_passant_point.get_x()][en_passant_point.get_y()];
                 if ((en_passant != nullptr) && (en_passant->get_color() != color) &&
-                    (en_passant->get_representation() == "Pn") && (en_passant->get_move_turn() == turn - 1)) {
+                    (en_passant->get_representation() == "Pn") && (en_passant->count_moves() == 1) &&
+                    (en_passant->get_move_turn() == turn - 1)) {
                     Pawn pawn(*board[j][i]);
                     pawn.do_move(turn, en_passant_point + Point(0, pawn.get_move_direction()));
                     plays.insert({{en_passant,  nullptr},

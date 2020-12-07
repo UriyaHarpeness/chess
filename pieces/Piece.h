@@ -23,13 +23,9 @@ typedef vector<vector<shared_ptr<Piece>>> BoardData;
 
 class Piece {
 public:
-    Piece(const Piece &other) = default;
-
     Piece(Color color, const Point &position) : m_color(color), m_positions({{0, position}}) {};
 
     [[nodiscard]] virtual set<Point> get_possible_positions(const BoardData &board, unsigned int turn) const;
-
-    [[nodiscard]] virtual set<Point> get_threatening_positions(const BoardData &board, unsigned int turn) const;
 
     [[nodiscard]] virtual const set<Point> &get_move_relative() const { return move_vector; };
 
@@ -41,11 +37,15 @@ public:
 
     void do_move(unsigned int turn, const Point &position) { m_positions.emplace_back(turn, position); }
 
+    void undo_last_move() { m_positions.pop_back(); }
+
     [[nodiscard]] inline bool moved() const { return m_positions.size() > 1; }
 
     [[nodiscard]] inline const Point &get_position() const { return prev(m_positions.end())->second; }
 
     [[nodiscard]] inline const unsigned int &get_move_turn() const { return prev(m_positions.end())->first; }
+
+    [[nodiscard]] inline size_t count_moves() const { return size_t(m_positions.size()) - 1; }
 
 protected:
     Color m_color;

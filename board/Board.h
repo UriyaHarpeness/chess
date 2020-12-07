@@ -9,6 +9,7 @@
 #include "../pieces/Bishop.h"
 #include "../pieces/Pawn.h"
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -41,15 +42,26 @@ public:
 
     void draw_board(const set<Point> &options) const;
 
-    void draw_board(const set<Point> &possible_moves, const Point &chosen, unsigned int turn) const;
+    void draw_board(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
+                    unsigned int turn);
 
     [[nodiscard]] map<Point, set<Point>> get_possible_moves(Color color, unsigned int turn) const;
 
-    [[nodiscard]] set<Point> get_threatened(Color color, unsigned int turn) const;
+    [[nodiscard]] set<Point>
+    get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
+                   unsigned int turn);
 
     void do_move(unsigned int turn, const Point &source, const Point &destination);
 
+    void undo_move(const Point &source, const Point &destination, shared_ptr<Piece> original);
+
+    [[nodiscard]] map<Point, shared_ptr<Piece>> get_endangered_pieces(const play &single_play) const;
+
     void do_move(const play &single_play);
+
+    void undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, const play &single_play);
+
+    [[nodiscard]] bool is_threatened(const shared_ptr<Piece> &piece, unsigned int turn) const;
 
     [[nodiscard]] const BoardData &get_board() const { return m_board; };
 

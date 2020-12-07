@@ -10,8 +10,6 @@ public:
 
     [[nodiscard]] set<Point> get_possible_positions(const BoardData &board, unsigned int turn) const override;
 
-    [[nodiscard]] set<Point> get_threatening_positions(const BoardData &board, unsigned int turn) const override;
-
     [[nodiscard]] inline string get_representation() const override { return "Pn"; };
 
     [[nodiscard]] inline short int get_move_direction() const { return m_color ? -1 : 1; }

@@ -31,8 +31,3 @@ set<Point> Piece::get_possible_positions(const BoardData &board, unsigned int tu
 
     return move(possible_positions);
 }
-
-set<Point> Piece::get_threatening_positions(const BoardData &board, unsigned int turn) const {
-    return move(get_possible_positions(board, turn));
-}
-

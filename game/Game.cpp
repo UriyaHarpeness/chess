@@ -150,8 +150,11 @@ void Game::turn(bool &quit, Color color) {
                 for_each(possible_play_moves.at(source).begin(), possible_play_moves.at(source).end(),
                          [&options](const auto &option) { options.insert(option.first); });
             }
-            auto piece_possible_moves_addition = possible_play_moves;
-            m_board.draw_board(options, source, m_turn);
+            map<Point, play> optional_plays;
+            if (possible_play_moves.find(source) != possible_play_moves.end()) {
+                optional_plays = possible_play_moves.at(source);
+            }
+            m_board.draw_board(options, optional_plays, source, m_turn);
             cout << "Enter destination: ";
 
             Point destination = Game::moves_fast_match(options, action);

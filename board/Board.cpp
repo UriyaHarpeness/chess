@@ -84,14 +84,15 @@ void Board::draw_board(const set<Point> &options) const {
     cout << endl;
 }
 
-void Board::draw_board(const set<Point> &possible_moves, const Point &chosen, unsigned int turn) const {
+void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
+                       unsigned int turn) {
     cout << "  ";
     for (dimension y = 0; y < SIZE; y++) print_char_index('A' + y);
     cout << endl;
     unsigned char background;
 
 #if DISPLAY_THREATENED
-    auto threatened = get_threatened(m_board[chosen.get_x()][chosen.get_y()]->get_color(), turn);
+    auto threatened = get_threatened(possible_moves, possible_plays, chosen, turn);
 #endif // DISPLAY_THREATENED
 
     for (int i = 0; i < SIZE; i++) {
@@ -146,15 +147,30 @@ map<Point, set<Point>> Board::get_possible_moves(Color color, unsigned int turn)
     return move(possible_moves);
 }
 
-set<Point> Board::get_threatened(Color color, unsigned int turn) const {
+set<Point>
+Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
+                      unsigned int turn) {
+    // todo: king is a special case that cannot move to a place that is threatened, it needs to be checked separately,
+    // for cases where he cannot move, and special case when he's already threatened, meaning mate.
     set<Point> threatened;
 
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if ((m_board[j][i] == nullptr) || (m_board[j][i]->get_color() == color)) continue;
-            auto piece_possible_moves = m_board[j][i]->get_threatening_positions(m_board, turn);
-            threatened.insert(piece_possible_moves.begin(), piece_possible_moves.end());
+    for (const auto &move : possible_moves) {
+        shared_ptr<Piece> original = m_board[move.get_x()][move.get_y()];
+        do_move(turn, chosen, move);
+        if (is_threatened(m_board[move.get_x()][move.get_y()], turn)) {
+            threatened.insert(move);
         }
+        undo_move(chosen, move, original);
+    }
+
+    for (const auto &single_play : possible_plays) {
+        auto move = single_play.first;
+        const auto endangered_pieces = get_endangered_pieces(single_play.second);
+        do_move(single_play.second);
+        if (is_threatened(m_board[move.get_x()][move.get_y()], turn)) {
+            threatened.insert(move);
+        }
+        undo_move(endangered_pieces, single_play.second);
     }
 
     return move(threatened);
@@ -165,6 +181,23 @@ void Board::do_move(unsigned int turn, const Point &source, const Point &destina
     m_board[destination.get_x()][destination.get_y()]->do_move(turn, destination);
 }
 
+void Board::undo_move(const Point &source, const Point &destination, shared_ptr<Piece> original) {
+    m_board[destination.get_x()][destination.get_y()]->undo_last_move();
+    m_board[source.get_x()][source.get_y()] = move(m_board[destination.get_x()][destination.get_y()]);
+    m_board[destination.get_x()][destination.get_y()] = move(original);
+}
+
+map<Point, shared_ptr<Piece>> Board::get_endangered_pieces(const play &single_play) const {
+    map<Point, shared_ptr<Piece>> endangered_pieces;
+    for (const auto &move : single_play) {
+        if (move.second != nullptr) {
+            endangered_pieces[move.second->get_position()] = m_board[move.second->get_position().get_x()][move.second->get_position().get_y()];
+        }
+        endangered_pieces[move.first->get_position()] = m_board[move.first->get_position().get_x()][move.first->get_position().get_y()];
+    }
+    return move(endangered_pieces);
+}
+
 void Board::do_move(const play &single_play) {
     for (const auto &move : single_play) {
         if (move.second != nullptr) {
@@ -172,4 +205,38 @@ void Board::do_move(const play &single_play) {
         }
         m_board[move.first->get_position().get_x()][move.first->get_position().get_y()] = nullptr;
     }
+}
+
+void Board::undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, const play &single_play) {
+    for (const auto &move : single_play) {
+        if (move.second != nullptr) {
+            m_board[move.second->get_position().get_x()][move.second->get_position().get_y()] = endangered_pieces.at(
+                    move.second->get_position());
+        }
+        m_board[move.first->get_position().get_x()][move.first->get_position().get_y()] = endangered_pieces.at(
+                move.first->get_position());
+    }
+}
+
+bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn) const {
+    const map<Point, set<Point>> possible_moves = get_possible_moves(piece->get_color() ? BLACK : WHITE, turn + 1);
+    if (any_of(possible_moves.begin(), possible_moves.end(), [&piece](const auto &moves) {
+        return any_of(moves.second.begin(), moves.second.end(),
+                      [&piece](const auto &destination) { return destination == piece->get_position(); });
+    })) {
+        return true;
+    }
+
+    map<Point, map<Point, play>> possible_play_moves;
+    const auto possible_plays = MultiPiece::get_plays(m_board, piece->get_color() ? BLACK : WHITE, turn + 1);
+    for (const auto &possible_play : possible_plays) {
+        for (const auto &single_change : possible_play) {
+            if ((single_change.first != nullptr) && (single_change.second == nullptr) &&
+                (single_change.first->get_position() == piece->get_position())) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }

@@ -32,18 +32,3 @@ set<Point> Pawn::get_possible_positions(const BoardData &board, unsigned int tur
 
     return move(possible_positions);
 }
-
-set<Point> Pawn::get_threatening_positions(const BoardData &board, unsigned int turn) const {
-    set<Point> threatening_positions;
-    Point relative;
-
-    // todo: see support for en passant threat.
-    for (const auto &move : {Point(-1, get_move_direction()), Point(1, get_move_direction())}) {
-        relative = get_position() + move;
-        if (relative.in_positive_range(SIZE, SIZE)) {
-            threatening_positions.insert(relative);
-        }
-    }
-
-    return move(threatening_positions);
-}
