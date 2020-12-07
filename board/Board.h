@@ -61,7 +61,9 @@ public:
 
     void undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, const play &single_play);
 
-    [[nodiscard]] bool is_threatened(const shared_ptr<Piece> &piece, unsigned int turn) const;
+    [[nodiscard]] bool is_threatened(const Point &position, Color color, unsigned int turn, bool threatening) const;
+
+    [[nodiscard]] bool is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const;
 
     [[nodiscard]] const BoardData &get_board() const { return m_board; };
 

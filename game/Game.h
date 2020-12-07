@@ -21,7 +21,7 @@ public:
     template<class T>
     static set<Point> get_keys(const map<Point, T> &mapping);
 
-    static Point moves_fast_match(const set<Point> &options, char &input);
+    static Point moves_fast_match(const set<Point> &options, char input, bool get = false);
 
     /**
      * Get single keyboard input without enter.
@@ -41,4 +41,6 @@ private:
     Board m_board;
 
     unsigned int m_turn;
+
+    vector<pair<Point, Point>> m_turns;
 };

@@ -157,7 +157,7 @@ Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &
     for (const auto &move : possible_moves) {
         shared_ptr<Piece> original = m_board[move.get_x()][move.get_y()];
         do_move(turn, chosen, move);
-        if (is_threatened(m_board[move.get_x()][move.get_y()], turn)) {
+        if (is_threatened(m_board[move.get_x()][move.get_y()], turn, true)) {
             threatened.insert(move);
         }
         undo_move(chosen, move, original);
@@ -167,7 +167,7 @@ Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &
         auto move = single_play.first;
         const auto endangered_pieces = get_endangered_pieces(single_play.second);
         do_move(single_play.second);
-        if (is_threatened(m_board[move.get_x()][move.get_y()], turn)) {
+        if (is_threatened(m_board[move.get_x()][move.get_y()], turn, true)) {
             threatened.insert(move);
         }
         undo_move(endangered_pieces, single_play.second);
@@ -218,25 +218,29 @@ void Board::undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, co
     }
 }
 
-bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn) const {
-    const map<Point, set<Point>> possible_moves = get_possible_moves(piece->get_color() ? BLACK : WHITE, turn + 1);
-    if (any_of(possible_moves.begin(), possible_moves.end(), [&piece](const auto &moves) {
+bool Board::is_threatened(const Point &position, Color color, unsigned int turn, bool threatening) const {
+    const map<Point, set<Point>> possible_moves = get_possible_moves(color ? BLACK : WHITE, turn + 1);
+    if (any_of(possible_moves.begin(), possible_moves.end(), [&position](const auto &moves) {
         return any_of(moves.second.begin(), moves.second.end(),
-                      [&piece](const auto &destination) { return destination == piece->get_position(); });
+                      [&position](const auto &destination) { return destination == position; });
     })) {
         return true;
     }
 
     map<Point, map<Point, play>> possible_play_moves;
-    const auto possible_plays = MultiPiece::get_plays(m_board, piece->get_color() ? BLACK : WHITE, turn + 1);
+    const auto possible_plays = MultiPiece::get_plays(*this, color ? BLACK : WHITE, turn + 1, threatening);
     for (const auto &possible_play : possible_plays) {
         for (const auto &single_change : possible_play) {
             if ((single_change.first != nullptr) && (single_change.second == nullptr) &&
-                (single_change.first->get_position() == piece->get_position())) {
+                (single_change.first->get_position() == position)) {
                 return true;
             }
         }
     }
 
     return false;
+}
+
+bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const {
+    return is_threatened(piece->get_position(), piece->get_color(), turn, threatening);
 }

@@ -11,7 +11,7 @@ set<Point> Game::get_keys(const map<Point, T> &mapping) {
     return move(points);
 }
 
-Point Game::moves_fast_match(const set<Point> &options, char &input) {
+Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
 #if AUTOFILL
     if (options.size() == 1) {
         cout << (char) (options.begin()->get_x() + 'a') << options.begin()->get_y() + 1 << endl;
@@ -23,7 +23,10 @@ Point Game::moves_fast_match(const set<Point> &options, char &input) {
 
     do {
         do {
-            input = (char) tolower(getch());
+            if (get) {
+                input = (char) tolower(getch());
+            }
+            get = true;
         } while (isspace(input));
 
         copy_if(options.begin(), options.end(), inserter(matches, matches.end()),
@@ -68,7 +71,12 @@ char Game::getch() {
     static unsigned int index = 0;
     // string test = "b8 c6 b1 a3 e7 e5 h2 h3 e5 e4 f2 f3 e4 f3";
     // string test = "e7 e5 a2 a4 e5 e4 b2 b4 g7 g5 b4 b5 g5 g4 f2 f4 e4 f3";
-    string test = "d7 d5 e2 e3 d5 d4 e3 d4 g8 f6 d4 d5 c7 c5 d5 c6 e8 d7 h2 h4 d8 b6 c6 d6";
+    // string test = "d7 d5 e2 e3 d5 d4 e3 d4 g8 f6 d4 d5 c7 c5 d5 c6 e8 d7 h2 h4 d8 b6 c6 d6"; // En passant
+    string test = "d7 d5 e2 e4 b8 a6 g1 h3 c8 e6 f1 d3 d8 d7 e1 g1 e8 d8"; // Castling
+    // Castling
+    // G8 H6 H2 H3 E7 E5 H3 H4 F8 A3 H4 H5 G7 G5 H1 H4 G5 G4 H4 G4 F7 F5 G2 G3 A3 B4 G4 H4 E8 G8
+    // G8 H6 H2 H3 E7 E5 H3 H4 F8 A3 H4 H5 G7 G5 H1 H4 G5 G4 H4 G4 F7 F5 G2 G3 E8 F8 G4 C4 F8 E8 C4 C7 E8 E7
+    // G8 H6 H2 H3 E7 E5 H3 H4 F8 A3 H4 H5 G7 G5 H1 H4 G5 G4 H4 G4 F7 F5 G2 G3 H8 G8 G4 H4 G8 H8 H4 B4 E8 F7
     if (index >= test.size()) exit(0);
     return test[index++];
 }
@@ -101,7 +109,7 @@ void Game::turn(bool &quit, Color color) {
 
     const map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
     map<Point, map<Point, play>> possible_play_moves;
-    const auto possible_plays = MultiPiece::get_plays(m_board.get_board(), color, m_turn);
+    const auto possible_plays = MultiPiece::get_plays(m_board, color, m_turn, false);
     for (const auto &possible_play : possible_plays) {
         for (const auto &single_change : possible_play) {
             if ((single_change.first != nullptr) && (single_change.second != nullptr) &&
@@ -121,12 +129,14 @@ void Game::turn(bool &quit, Color color) {
 
     set<Point> piece_matches;
 
-    cout << "Enter source: ";
-
     // Loop until a valid action has been made.
     while (true) {
         // Get action.
-        Point source = Game::moves_fast_match(options, action);
+        cout << "Enter action: ";
+
+        do {
+            action = (char) tolower(getch());
+        } while (isspace(action));
 
         if (action == undo_action) {
             // Undo.
@@ -141,7 +151,19 @@ void Game::turn(bool &quit, Color color) {
             // Quit.
             quit = true;
             break;
+        } else if (action == 'p') {
+            // Print.
+            cout << action << endl << "Turns: ";
+            for (const auto &turn : m_turns) {
+                cout << (char) (turn.first.get_x() + 'A') << turn.first.get_y() + 1 << " "
+                     << (char) (turn.second.get_x() + 'A') << turn.second.get_y() + 1 << " ";
+            }
+            cout << endl;
         } else {
+            cout << endl << "Enter source: ";
+
+            Point source = Game::moves_fast_match(options, action);
+
             options.clear();
             if (possible_moves.find(source) != possible_moves.end()) {
                 options.insert(possible_moves.at(source).begin(), possible_moves.at(source).end());
@@ -157,7 +179,7 @@ void Game::turn(bool &quit, Color color) {
             m_board.draw_board(options, optional_plays, source, m_turn);
             cout << "Enter destination: ";
 
-            Point destination = Game::moves_fast_match(options, action);
+            Point destination = Game::moves_fast_match(options, action, true);
 
             if ((possible_moves.find(source) != possible_moves.end()) &&
                 (possible_moves.at(source).find(destination) != possible_moves.at(source).end())) {
@@ -166,6 +188,8 @@ void Game::turn(bool &quit, Color color) {
                 m_board.do_move(possible_play_moves.at(source).at(destination));
             }
 
+            m_turns.emplace_back(source, destination);
+
             break;
         }
     }
@@ -173,6 +197,7 @@ void Game::turn(bool &quit, Color color) {
 
 bool Game::play_game() {
     // Display title.
+    m_turns.clear();
     bool quit;
     auto color = WHITE;
     while (true) {

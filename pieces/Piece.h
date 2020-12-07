@@ -21,6 +21,10 @@ class Piece;
 // todo: maybe unique_ptr would be better here.
 typedef vector<vector<shared_ptr<Piece>>> BoardData;
 
+typedef pair<shared_ptr<Piece>, shared_ptr<Piece>> change;
+
+typedef vector<change> play;
+
 class Piece {
 public:
     Piece(Color color, const Point &position) : m_color(color), m_positions({{0, position}}) {};
