@@ -47,10 +47,6 @@ public:
 
     [[nodiscard]] map<Point, set<Point>> get_possible_moves(Color color, unsigned int turn) const;
 
-    [[nodiscard]] set<Point>
-    get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
-                   unsigned int turn);
-
     void do_move(unsigned int turn, const Point &source, const Point &destination);
 
     void undo_move(const Point &source, const Point &destination, shared_ptr<Piece> original);
@@ -61,13 +57,23 @@ public:
 
     void undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, const play &single_play);
 
+    [[nodiscard]] set<Point>
+    get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
+                   unsigned int turn);
+
     [[nodiscard]] bool is_threatened(const Point &position, Color color, unsigned int turn, bool threatening) const;
 
     [[nodiscard]] bool is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const;
 
+    void
+    filter_illegal_moves(map<Point, set<Point>> &possible_moves, map<Point, map<Point, play>> &possible_play_moves,
+                         Color color, unsigned int turn);
+
     [[nodiscard]] const BoardData &get_board() const { return m_board; };
 
     [[nodiscard]] BoardData &get_mutable_board() { return m_board; };
+
+    [[nodiscard]] Point find_king(Color color) const;
 
 private:
     BoardData m_board;

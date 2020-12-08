@@ -2,16 +2,29 @@
 
 using namespace std;
 
-int main() {
-    /*for (int i = 0; i < 16; i++) {
-        for (int j = 0; j < 16; j++) {
-            cout << "\u001b[48;5;" << 16 * 16 - 1 - (i * 16 + j) << ";38;5;" << (i * 16 + j) << "m"
-                 << Board::zfill(to_string(i * 16 + j), 3, '0') << "\u001b[0m";
-        }
-        cout << endl;
-    }*/
+int main(int argc, char *argv[]) {
+    // Set default game settings.
+    bool walk_through = false;
+    string pre_moves;
 
-    Game g;
+    // Check input.
+    if ((argc > 3) || ((argc >= 2) && (string(argv[1]) == "-h"))) {
+        throw runtime_error("Usage: chess [--walk-through] [MOVES]");
+    }
+
+    // Parse arguments.
+    for (int index = 1; index < argc; index++) {
+        if (string(argv[index]) == "--walk-through") {
+            walk_through = true;
+        } else {
+            pre_moves = string(argv[index]);
+        }
+    }
+
+    // Initialize the game.
+    Game g(walk_through, pre_moves);
+
+    // Play.
     g.play_game();
 
     return 0;

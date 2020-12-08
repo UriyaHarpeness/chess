@@ -26,12 +26,14 @@ public:
     /// Quit action identifiers.
     static const set<char> quit_actions;
 
-    Game();
+    static const map<GameStatus, string> finish_messages;
+
+    Game(bool walk_through, string pre_moves);
 
     template<class T>
     static set<Point> get_keys(const map<Point, T> &mapping);
 
-    static Point moves_fast_match(const set<Point> &options, char input, bool get = false);
+    Point moves_fast_match(const set<Point> &options, char input, bool get = false);
 
     /**
      * Get single keyboard input without enter.
@@ -43,11 +45,19 @@ public:
      */
     static char getch();
 
+    char get_input();
+
     void turn(GameStatus &status, Color color);
 
     GameStatus play_game();
 
 private:
+    bool m_walk_through;
+
+    const string m_pre_moves;
+
+    size_t m_pre_moves_index;
+
     Board m_board;
 
     unsigned int m_turn;

@@ -102,7 +102,7 @@ void MultiPiece::perform_promotion(Board &board, const Point &destination, const
     } else if (promotion == 'b') {
         board_data[destination.get_x()][destination.get_y()] = make_shared<Bishop>(
                 *board_data[destination.get_x()][destination.get_y()]);
-    } else if (promotion == 'k') {
+    } else if (promotion == 'n') {
         board_data[destination.get_x()][destination.get_y()] = make_shared<Knight>(
                 *board_data[destination.get_x()][destination.get_y()]);
     }

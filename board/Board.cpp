@@ -66,11 +66,15 @@ void Board::draw_board(const set<Point> &options) const {
                 print_colorful("  ", 0, ((i + j) % 2 ? colors::dark_gray : colors::light_gray));
                 continue;
             }
+#if DISPLAY_HINTS
             if ((options.find(Point(j, i)) == options.end())) {
+#endif // DISPLAY_HINTS
                 background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
+#if DISPLAY_HINTS
             } else {
                 background = (i + j) % 2 ? colors::dark_green : colors::light_green;
             }
+#endif // DISPLAY_HINTS
             print_colorful(m_board[j][i]->get_representation(),
                            (m_board[j][i]->get_color()) ? colors::white : colors::black,
                            background);
@@ -100,8 +104,13 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
         for (int j = 0; j < SIZE; j++) {
             if (Point(j, i) == chosen) {
                 background = 220;
+#if DISPLAY_HINTS
             } else if ((possible_moves.find(Point(j, i)) == possible_moves.end())) {
+#else
+                }
+#endif // DISPLAY_HINTS
                 background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
+#if DISPLAY_HINTS
             } else {
 #if DISPLAY_THREATENED
                 if (threatened.find(Point(j, i)) != threatened.end()) {
@@ -113,6 +122,7 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
                 }
 #endif // DISPLAY_THREATENED
             }
+#endif // DISPLAY_HINTS
 
             if (m_board[j][i] == nullptr) {
                 print_colorful("  ", colors::black, background);
@@ -145,35 +155,6 @@ map<Point, set<Point>> Board::get_possible_moves(Color color, unsigned int turn)
     }
 
     return move(possible_moves);
-}
-
-set<Point>
-Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
-                      unsigned int turn) {
-    // todo: king is a special case that cannot move to a place that is threatened, it needs to be checked separately,
-    // for cases where he cannot move, and special case when he's already threatened, meaning mate.
-    set<Point> threatened;
-
-    for (const auto &move : possible_moves) {
-        shared_ptr<Piece> original = m_board[move.get_x()][move.get_y()];
-        do_move(turn, chosen, move);
-        if (is_threatened(m_board[move.get_x()][move.get_y()], turn, true)) {
-            threatened.insert(move);
-        }
-        undo_move(chosen, move, original);
-    }
-
-    for (const auto &single_play : possible_plays) {
-        auto move = single_play.first;
-        const auto endangered_pieces = get_endangered_pieces(single_play.second);
-        do_move(single_play.second);
-        if (is_threatened(m_board[move.get_x()][move.get_y()], turn, true)) {
-            threatened.insert(move);
-        }
-        undo_move(endangered_pieces, single_play.second);
-    }
-
-    return move(threatened);
 }
 
 void Board::do_move(unsigned int turn, const Point &source, const Point &destination) {
@@ -218,6 +199,35 @@ void Board::undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, co
     }
 }
 
+set<Point>
+Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
+                      unsigned int turn) {
+    // todo: king is a special case that cannot move to a place that is threatened, it needs to be checked separately,
+    // for cases where he cannot move, and special case when he's already threatened, meaning mate.
+    set<Point> threatened;
+
+    for (const auto &move : possible_moves) {
+        shared_ptr<Piece> original = m_board[move.get_x()][move.get_y()];
+        do_move(turn, chosen, move);
+        if (is_threatened(m_board[move.get_x()][move.get_y()], turn, true)) {
+            threatened.insert(move);
+        }
+        undo_move(chosen, move, original);
+    }
+
+    for (const auto &single_play : possible_plays) {
+        auto move = single_play.first;
+        const auto endangered_pieces = get_endangered_pieces(single_play.second);
+        do_move(single_play.second);
+        if (is_threatened(m_board[move.get_x()][move.get_y()], turn, true)) {
+            threatened.insert(move);
+        }
+        undo_move(endangered_pieces, single_play.second);
+    }
+
+    return move(threatened);
+}
+
 bool Board::is_threatened(const Point &position, Color color, unsigned int turn, bool threatening) const {
     const map<Point, set<Point>> possible_moves = get_possible_moves(color ? BLACK : WHITE, turn + 1);
     if (any_of(possible_moves.begin(), possible_moves.end(), [&position](const auto &moves) {
@@ -243,4 +253,66 @@ bool Board::is_threatened(const Point &position, Color color, unsigned int turn,
 
 bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const {
     return is_threatened(piece->get_position(), piece->get_color(), turn, threatening);
+}
+
+void
+Board::filter_illegal_moves(map<Point, set<Point>> &possible_moves, map<Point, map<Point, play>> &possible_play_moves,
+                            Color color, unsigned int turn) {
+    for (auto moves = possible_moves.begin(); moves != possible_moves.end();) {
+        for (auto move = moves->second.begin(); move != moves->second.end();) {
+            auto source = moves->first, destination = *move;
+            shared_ptr<Piece> original = m_board[destination.get_x()][destination.get_y()];
+            do_move(turn, source, destination);
+            const auto king_position = find_king(color);
+            bool king_threatened = is_threatened(king_position, color, turn, true);
+            undo_move(source, destination, original);
+
+            if (king_threatened) {
+                move = moves->second.erase(move);
+            } else {
+                move++;
+            }
+        }
+
+        if (moves->second.empty()) {
+            moves = possible_moves.erase(moves);
+        } else {
+            moves++;
+        }
+    }
+
+    for (auto possible_plays = possible_play_moves.begin(); possible_plays != possible_play_moves.end();) {
+        for (auto possible_play = possible_plays->second.begin(); possible_play != possible_plays->second.end();) {
+            const auto endangered_pieces = get_endangered_pieces(possible_play->second);
+            do_move(possible_play->second);
+            const auto king_position = find_king(color);
+            bool king_threatened = is_threatened(king_position, color, turn, true);
+            undo_move(endangered_pieces, possible_play->second);
+
+            if (king_threatened) {
+                possible_play = possible_plays->second.erase(possible_play);
+            } else {
+                possible_play++;
+            }
+        }
+
+        if (possible_plays->second.empty()) {
+            possible_plays = possible_play_moves.erase(possible_plays);
+        } else {
+            possible_plays++;
+        }
+    }
+}
+
+Point Board::find_king(Color color) const {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if ((m_board[i][j] != nullptr) && (m_board[i][j]->get_representation() == "Kg") &&
+                (m_board[i][j]->get_color() == color)) {
+                return Point(i, j);
+            }
+        }
+    }
+
+    return Point(-1, -1);
 }
