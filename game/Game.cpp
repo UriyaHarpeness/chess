@@ -18,7 +18,7 @@ set<Point> Game::get_keys(const map<Point, T> &mapping) {
 Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
 #if AUTOFILL
     if (options.size() == 1) {
-        cout << (char) (options.begin()->get_x() + 'a') << options.begin()->get_y() + 1 << endl;
+        cout << (char) (options.begin()->get_x() + 'A') << options.begin()->get_y() + 1 << endl;
         return *options.begin();
     }
 #endif // AUTOFILL
@@ -40,7 +40,7 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
                 });
     } while (matches.empty());
 
-    cout << input;
+    cout << (char) toupper(input);
 
 #if AUTOFILL
     if (matches.size() == 1) {
@@ -64,7 +64,7 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
                 });
     } while (final_matches.size() != 1);
 
-    cout << input << endl;
+    cout << (char) toupper(input) << endl;
 
     return *final_matches.begin();
 }
@@ -190,11 +190,11 @@ void Game::turn(GameStatus &status, Color color) {
 
             // Promotion.
             if (MultiPiece::is_promotion(m_board, destination)) {
-                cout << "Enter promotion piece of choice (qrbk): ";
+                cout << "Enter promotion piece of choice (QRBK): ";
                 do {
                     action = (char) tolower(getch());
                 } while (isspace(action) || (promotion_options.find(action) == promotion_options.end()));
-                cout << action << endl;
+                cout << (char) toupper(action) << endl;
                 MultiPiece::perform_promotion(m_board, destination, action);
                 m_turns.emplace_back(source, destination, action);
             } else {

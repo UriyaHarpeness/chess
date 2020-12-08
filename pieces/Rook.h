@@ -2,11 +2,11 @@
 
 #include "Piece.h"
 
-class Rock : public Piece {
+class Rook : public Piece {
 public:
-    Rock(const Piece &other) : Piece(other) {}
+    Rook(const Piece &other) : Piece(other) {}
 
-    Rock(Color color, const Point &position) : Piece(color, position) {}
+    Rook(Color color, const Point &position) : Piece(color, position) {}
 
     [[nodiscard]] const set<Point> &get_move_vector() const override { return move_vector; };
 

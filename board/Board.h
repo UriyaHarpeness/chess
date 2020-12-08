@@ -4,7 +4,7 @@
 #include "../multipiece/MultiPiece.h"
 #include "../pieces/King.h"
 #include "../pieces/Queen.h"
-#include "../pieces/Rock.h"
+#include "../pieces/Rook.h"
 #include "../pieces/Knight.h"
 #include "../pieces/Bishop.h"
 #include "../pieces/Pawn.h"

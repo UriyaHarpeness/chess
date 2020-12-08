@@ -9,11 +9,11 @@ Board::Board() : m_board(8, vector<shared_ptr<Piece>>(8, nullptr)) {
     m_board[3][0] = make_shared<Queen>(BLACK, Point{3, 0});
     m_board[3][SIZE - 1] = make_shared<Queen>(WHITE, Point{3, SIZE - 1});
 
-    // Rocks.
-    m_board[0][0] = make_shared<Rock>(BLACK, Point{0, 0});
-    m_board[0][SIZE - 1] = make_shared<Rock>(WHITE, Point{0, SIZE - 1});
-    m_board[SIZE - 1][0] = make_shared<Rock>(BLACK, Point{SIZE - 1, 0});
-    m_board[SIZE - 1][SIZE - 1] = make_shared<Rock>(WHITE, Point{SIZE - 1, SIZE - 1});
+    // Rooks.
+    m_board[0][0] = make_shared<Rook>(BLACK, Point{0, 0});
+    m_board[0][SIZE - 1] = make_shared<Rook>(WHITE, Point{0, SIZE - 1});
+    m_board[SIZE - 1][0] = make_shared<Rook>(BLACK, Point{SIZE - 1, 0});
+    m_board[SIZE - 1][SIZE - 1] = make_shared<Rook>(WHITE, Point{SIZE - 1, SIZE - 1});
 
     // Knights.
     m_board[1][0] = make_shared<Knight>(BLACK, Point{1, 0});

@@ -33,11 +33,11 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
 
         if (valid) {
             King king(*board_data[4][initial_y]);
-            Rock rock(*board_data[x][initial_y]);
+            Rook rock(*board_data[x][initial_y]);
             king.do_move(turn, Point(4 + (movement * 2), initial_y));
             rock.do_move(turn, Point(4 + movement, initial_y));
             plays.insert({{board_data[4][initial_y], make_shared<King>(king)},
-                          {board_data[x][initial_y], make_shared<Rock>(rock)}});
+                          {board_data[x][initial_y], make_shared<Rook>(rock)}});
         }
     }
 
@@ -97,7 +97,7 @@ void MultiPiece::perform_promotion(Board &board, const Point &destination, const
         board_data[destination.get_x()][destination.get_y()] = make_shared<Queen>(
                 *board_data[destination.get_x()][destination.get_y()]);
     } else if (promotion == 'r') {
-        board_data[destination.get_x()][destination.get_y()] = make_shared<Rock>(
+        board_data[destination.get_x()][destination.get_y()] = make_shared<Rook>(
                 *board_data[destination.get_x()][destination.get_y()]);
     } else if (promotion == 'b') {
         board_data[destination.get_x()][destination.get_y()] = make_shared<Bishop>(
