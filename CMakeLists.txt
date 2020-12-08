@@ -23,7 +23,7 @@ add_executable(chess main.cpp
         pieces/Piece.h
         pieces/Queen.cpp
         pieces/Queen.h
-        pieces/Rock.cpp
-        pieces/Rock.h
+        pieces/Rook.cpp
+        pieces/Rook.h
         point/Point.cpp
         point/Point.h)

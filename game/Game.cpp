@@ -1,10 +1,18 @@
 #include "Game.h"
 
+#include <utility>
+
 const set<char> Game::quit_actions = {'q', 127, 27};
 
-const set<char> Game::promotion_options = {'q', 'r', 'b', 'k'};
+const set<char> Game::promotion_options = {'q', 'r', 'b', 'n'};
 
-Game::Game() : m_board(), m_turn(0) {}
+const map<GameStatus, string> Game::finish_messages = {{BLACK_RESIGN, "Black has quit, either a professional forfeit, or a total coward."},
+                                                       {WHITE_RESIGN, "White has resign, it's so like him, isn't it?"},
+                                                       {BLACK_WIN,    "OUR HEAVY WEIGHT WRESTLING CHAMPION IS... Oh, wrong match, black wins, woohoo..."},
+                                                       {WHITE_WIN,    "Congrats, white, now everyone hates you."}};
+
+Game::Game(bool walk_through, string pre_moves) : m_walk_through(walk_through), m_pre_moves(move(pre_moves)),
+                                                  m_pre_moves_index(0), m_board(), m_turn(0) {}
 
 template<class T>
 set<Point> Game::get_keys(const map<Point, T> &mapping) {
@@ -18,7 +26,7 @@ set<Point> Game::get_keys(const map<Point, T> &mapping) {
 Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
 #if AUTOFILL
     if (options.size() == 1) {
-        cout << (char) (options.begin()->get_x() + 'a') << options.begin()->get_y() + 1 << endl;
+        cout << (char) (options.begin()->get_x() + 'A') << options.begin()->get_y() + 1 << endl;
         return *options.begin();
     }
 #endif // AUTOFILL
@@ -28,7 +36,7 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
     do {
         do {
             if (get) {
-                input = (char) tolower(getch());
+                input = (char) tolower(get_input());
             }
             get = true;
         } while (isspace(input));
@@ -40,7 +48,8 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
                 });
     } while (matches.empty());
 
-    cout << input;
+    const bool first_char = isalpha(input);
+    cout << (char) toupper(input);
 
 #if AUTOFILL
     if (matches.size() == 1) {
@@ -54,40 +63,20 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
         final_matches.clear();
 
         do {
-            input = (char) tolower(getch());
+            input = (char) tolower(get_input());
         } while (isspace(input));
 
         copy_if(matches.begin(), matches.end(), inserter(final_matches, final_matches.end()),
                 [&, input](const auto &point) {
-                    return ((isdigit(input) && (point.get_y() == input - '0' - 1)) ||
-                            (isalpha(input) && (point.get_x() == input - 'a')));
+                    return ((isdigit(input) && (first_char) && (point.get_y() == input - '0' - 1)) ||
+                            (isalpha(input) && (!first_char) && (point.get_x() == input - 'a')));
                 });
     } while (final_matches.size() != 1);
 
-    cout << input << endl;
+    cout << (char) toupper(input) << endl;
 
     return *final_matches.begin();
 }
-
-#if SIMULATE
-
-char Game::getch() {
-    static unsigned int index = 0;
-    // string test = "b8 c6 b1 a3 e7 e5 h2 h3 e5 e4 f2 f3 e4 f3";
-    // string test = "e7 e5 a2 a4 e5 e4 b2 b4 g7 g5 b4 b5 g5 g4 f2 f4 e4 f3";
-    // string test = "d7 d5 e2 e3 d5 d4 e3 d4 g8 f6 d4 d5 c7 c5 d5 c6 e8 d7 h2 h4 d8 b6 c6 d6"; // En passant
-    string test = "G7 G5 G2 G4 F8 H6 H2 H4 G5 H4 H1 H2 H4 H3 H2 G2 H3 H2 G4 G5 H2 H1 q p"; // Castling
-    // Promotion
-    // G7 G5 G2 G4 F8 H6 H2 H4 G5 H4 H1 H2 H4 H3 H2 G2 H3 H2 G4 G5 H2 H1 Q
-    // Castling
-    // G8 H6 H2 H3 E7 E5 H3 H4 F8 A3 H4 H5 G7 G5 H1 H4 G5 G4 H4 G4 F7 F5 G2 G3 A3 B4 G4 H4 E8 G8
-    // G8 H6 H2 H3 E7 E5 H3 H4 F8 A3 H4 H5 G7 G5 H1 H4 G5 G4 H4 G4 F7 F5 G2 G3 E8 F8 G4 C4 F8 E8 C4 C7 E8 E7
-    // G8 H6 H2 H3 E7 E5 H3 H4 F8 A3 H4 H5 G7 G5 H1 H4 G5 G4 H4 G4 F7 F5 G2 G3 E5 E4 G4 E4 H6 F7 E4 E6 H7 H6 E6 H6 E8 G8
-    if (index >= test.size()) exit(0);
-    return test[index++];
-}
-
-#else
 
 char Game::getch() {
     struct termios old_settings{}, new_settings{};
@@ -106,14 +95,19 @@ char Game::getch() {
     return ch;
 }
 
-#endif // SIMULATE
+char Game::get_input() {
+    if (m_pre_moves.length() > m_pre_moves_index) {
+        return m_pre_moves[m_pre_moves_index++];
+    }
+    return getch();
+}
 
 void Game::turn(GameStatus &status, Color color) {
     m_turn++;
     char action;
     set<Point> options;
 
-    const map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
+    map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
     map<Point, map<Point, play>> possible_play_moves;
     const auto possible_plays = MultiPiece::get_plays(m_board, color, m_turn, false);
     for (const auto &possible_play : possible_plays) {
@@ -125,11 +119,20 @@ void Game::turn(GameStatus &status, Color color) {
         }
     }
 
+    m_board.filter_illegal_moves(possible_moves, possible_play_moves, color, m_turn);
+
     options = get_keys(possible_moves);
     auto tmp = get_keys(possible_play_moves);
     options.insert(tmp.begin(), tmp.end());
 
-    cout << endl << (color ? "White" : "Black") << "'s turn" << endl;
+    if (options.empty()) {
+        status = color ? BLACK_WIN : WHITE_WIN;
+        return;
+    }
+
+    const auto king_position = m_board.find_king(color);
+    const bool king_threatened = m_board.is_threatened(king_position, color, m_turn, true);
+    cout << endl << (color ? "White" : "Black") << "'s turn" << (king_threatened ? " (Check)" : "") << endl;
 
     m_board.draw_board(options);
 
@@ -141,7 +144,7 @@ void Game::turn(GameStatus &status, Color color) {
         cout << "Enter action: ";
 
         do {
-            action = (char) tolower(getch());
+            action = (char) tolower(get_input());
         } while (isspace(action));
 
         if (quit_actions.find(action) != quit_actions.end()) {
@@ -152,11 +155,12 @@ void Game::turn(GameStatus &status, Color color) {
             // Print.
             cout << action << endl << "Turns: ";
             for (const auto &turn : m_turns) {
-                cout << (char) (get<0>(turn).get_x() + 'A') << get<0>(turn).get_y() + 1 << " "
-                     << (char) (get<1>(turn).get_x() + 'A') << get<1>(turn).get_y() + 1 << " ";
+                cout << (char) (get<0>(turn).get_x() + 'A') << get<0>(turn).get_y() + 1
+                     << (char) (get<1>(turn).get_x() + 'A') << get<1>(turn).get_y() + 1;
                 if (get<2>(turn)) {
-                    cout << (char) toupper(get<2>(turn)) << " ";
+                    cout << (char) toupper(get<2>(turn));
                 }
+                cout << " ";
             }
             cout << endl;
         } else {
@@ -190,16 +194,18 @@ void Game::turn(GameStatus &status, Color color) {
 
             // Promotion.
             if (MultiPiece::is_promotion(m_board, destination)) {
-                cout << "Enter promotion piece of choice (qrbk): ";
+                cout << "Enter promotion piece of choice (QRBK): ";
                 do {
-                    action = (char) tolower(getch());
+                    action = (char) tolower(get_input());
                 } while (isspace(action) || (promotion_options.find(action) == promotion_options.end()));
-                cout << action << endl;
+                cout << (char) toupper(action) << endl;
                 MultiPiece::perform_promotion(m_board, destination, action);
                 m_turns.emplace_back(source, destination, action);
             } else {
                 m_turns.emplace_back(source, destination, NULL);
             }
+
+            if ((m_pre_moves.length() - 1 > m_pre_moves_index) && m_walk_through) getch();
 
             break;
         }
@@ -209,13 +215,15 @@ void Game::turn(GameStatus &status, Color color) {
 GameStatus Game::play_game() {
     // Display title.
     m_turns.clear();
-    auto color = WHITE;
+    auto color = BLACK;
     GameStatus status = ONGOING;
 
     while (!status) {
         turn(status, color);
         color = color ? BLACK : WHITE;
     }
+
+    cout << endl << finish_messages.at(status) << endl;
 
     return status;
 }

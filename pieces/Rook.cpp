@@ -1,6 +1,6 @@
-#include "Rock.h"
+#include "Rook.h"
 
-const set<Point> Rock::move_vector = {{1,  0},
+const set<Point> Rook::move_vector = {{1,  0},
                                       {0,  1},
                                       {-1, 0},
                                       {0,  -1}};
