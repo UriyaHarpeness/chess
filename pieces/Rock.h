@@ -4,11 +4,13 @@
 
 class Rock : public Piece {
 public:
-    Rock(Color color) : Piece(color) {};
+    Rock(const Piece &other) : Piece(other) {}
 
-    virtual const set<Point> &get_move_vector() override { return move_vector; };
+    Rock(Color color, const Point &position) : Piece(color, position) {}
 
-    inline const string get_representation() const override { return "Rk"; };
+    [[nodiscard]] const set<Point> &get_move_vector() const override { return move_vector; };
+
+    [[nodiscard]] inline string get_representation() const override { return "Rk"; };
 
 private:
     static const set<Point> move_vector;

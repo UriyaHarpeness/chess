@@ -14,6 +14,8 @@ public:
 
     Point(dimension x, dimension y);
 
+    Point(pair<dimension, dimension> point);
+
     Point operator+(const Point &other) const;
 
     Point operator+=(const Point &other);

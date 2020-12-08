@@ -4,9 +4,13 @@
 
 class Pawn : public Piece {
 public:
-    Pawn(Color color) : Piece(color) {};
+    Pawn(const Piece &other) : Piece(other) {}
 
-    set<Point> get_possible_positions(const Point &current, const BoardData &board);
+    Pawn(Color color, const Point &position) : Piece(color, position) {}
 
-    inline const string get_representation() const override { return "Pn"; };
+    [[nodiscard]] set<Point> get_possible_positions(const BoardData &board, unsigned int turn) const override;
+
+    [[nodiscard]] inline string get_representation() const override { return "Pn"; };
+
+    [[nodiscard]] inline short int get_move_direction() const { return m_color ? -1 : 1; }
 };

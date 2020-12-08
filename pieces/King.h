@@ -4,11 +4,13 @@
 
 class King : public Piece {
 public:
-    King(Color color) : Piece(color) {};
+    King(const Piece &other) : Piece(other) {}
 
-    virtual const set<Point> &get_move_relative() override { return move_relative; };
+    King(Color color, const Point &position) : Piece(color, position) {}
 
-    inline const string get_representation() const override { return "Kg"; };
+    [[nodiscard]] const set<Point> &get_move_relative() const override { return move_relative; };
+
+    [[nodiscard]] inline string get_representation() const override { return "Kg"; };
 
 private:
     static const set<Point> move_relative;

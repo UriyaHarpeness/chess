@@ -6,8 +6,11 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(chess main.cpp
         board/Board.cpp
         board/Board.h
+        config.h
         game/Game.cpp
         game/Game.h
+        multipiece/MultiPiece.cpp
+        multipiece/MultiPiece.h
         pieces/Bishop.cpp
         pieces/Bishop.h
         pieces/King.cpp
