@@ -1,6 +1,6 @@
 #define DISPLAY_THREATENED true
 
-#define SIMULATE false
+#define SIMULATE true
 
 #define AUTOFILL false
 

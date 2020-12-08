@@ -4,6 +4,8 @@
 
 class Knight : public Piece {
 public:
+    Knight(const Piece &other) : Piece(other) {}
+
     Knight(Color color, const Point &position) : Piece(color, position) {}
 
     [[nodiscard]] const set<Point> &get_move_relative() const override { return move_relative; };

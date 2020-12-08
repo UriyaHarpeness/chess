@@ -11,10 +11,20 @@
 
 using namespace std;
 
+enum GameStatus : char {
+    ONGOING = 0,
+    BLACK_RESIGN = 1,
+    WHITE_RESIGN = 2,
+    BLACK_WIN = 3,
+    WHITE_WIN = 4
+};
+
 class Game {
 public:
+    static const set<char> promotion_options;
 
-    static const char undo_action = 'u';
+    /// Quit action identifiers.
+    static const set<char> quit_actions;
 
     Game();
 
@@ -33,14 +43,14 @@ public:
      */
     static char getch();
 
-    void turn(bool &quit, Color color);
+    void turn(GameStatus &status, Color color);
 
-    bool play_game();
+    GameStatus play_game();
 
 private:
     Board m_board;
 
     unsigned int m_turn;
 
-    vector<pair<Point, Point>> m_turns;
+    vector<tuple<Point, Point, char>> m_turns;
 };

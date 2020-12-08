@@ -67,6 +67,8 @@ public:
 
     [[nodiscard]] const BoardData &get_board() const { return m_board; };
 
+    [[nodiscard]] BoardData &get_mutable_board() { return m_board; };
+
 private:
     BoardData m_board;
 };

@@ -84,3 +84,26 @@ set<play> MultiPiece::get_plays(const Board &board, Color color, unsigned int tu
 
     return move(plays);
 }
+
+bool MultiPiece::is_promotion(const Board &board, const Point &destination) {
+    const auto &board_data = board.get_board();
+    auto piece = board_data[destination.get_x()][destination.get_y()];
+    return ((piece->get_representation() == "Pn") && (destination.get_y() == (piece->get_color() ? 0 : 7)));
+}
+
+void MultiPiece::perform_promotion(Board &board, const Point &destination, const char promotion) {
+    auto &board_data = board.get_mutable_board();
+    if (promotion == 'q') {
+        board_data[destination.get_x()][destination.get_y()] = make_shared<Queen>(
+                *board_data[destination.get_x()][destination.get_y()]);
+    } else if (promotion == 'r') {
+        board_data[destination.get_x()][destination.get_y()] = make_shared<Rock>(
+                *board_data[destination.get_x()][destination.get_y()]);
+    } else if (promotion == 'b') {
+        board_data[destination.get_x()][destination.get_y()] = make_shared<Bishop>(
+                *board_data[destination.get_x()][destination.get_y()]);
+    } else if (promotion == 'k') {
+        board_data[destination.get_x()][destination.get_y()] = make_shared<Knight>(
+                *board_data[destination.get_x()][destination.get_y()]);
+    }
+}

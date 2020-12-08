@@ -4,6 +4,8 @@
 
 class Queen : public Piece {
 public:
+    Queen(const Piece &other) : Piece(other) {}
+
     Queen(Color color, const Point &position) : Piece(color, position) {}
 
     [[nodiscard]] const set<Point> &get_move_vector() const override { return move_vector; };
