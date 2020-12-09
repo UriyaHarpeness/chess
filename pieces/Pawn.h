@@ -12,5 +12,5 @@ public:
 
     [[nodiscard]] inline string get_representation() const override { return "Pn"; };
 
-    [[nodiscard]] inline short int get_move_direction() const { return m_color ? -1 : 1; }
+    [[nodiscard]] inline short int get_move_direction() const { return m_color ? 1 : -1; }
 };

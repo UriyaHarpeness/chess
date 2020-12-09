@@ -215,13 +215,16 @@ void Game::turn(GameStatus &status, Color color) {
 GameStatus Game::play_game() {
     // Display title.
     m_turns.clear();
-    auto color = BLACK;
+    auto color = WHITE;
     GameStatus status = ONGOING;
 
     while (!status) {
         turn(status, color);
         color = color ? BLACK : WHITE;
     }
+
+    cout << endl << "Final board" << endl;
+    m_board.draw_board({});
 
     cout << endl << finish_messages.at(status) << endl;
 

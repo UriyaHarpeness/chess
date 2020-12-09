@@ -2,35 +2,35 @@
 
 Board::Board() : m_board(8, vector<shared_ptr<Piece>>(8, nullptr)) {
     // Kings.
-    m_board[4][0] = make_shared<King>(BLACK, Point{4, 0});
-    m_board[4][SIZE - 1] = make_shared<King>(WHITE, Point{4, SIZE - 1});
+    m_board[4][0] = make_shared<King>(WHITE, Point{4, 0});
+    m_board[4][SIZE - 1] = make_shared<King>(BLACK, Point{4, SIZE - 1});
 
     // Queens.
-    m_board[3][0] = make_shared<Queen>(BLACK, Point{3, 0});
-    m_board[3][SIZE - 1] = make_shared<Queen>(WHITE, Point{3, SIZE - 1});
+    m_board[3][0] = make_shared<Queen>(WHITE, Point{3, 0});
+    m_board[3][SIZE - 1] = make_shared<Queen>(BLACK, Point{3, SIZE - 1});
 
     // Rooks.
-    m_board[0][0] = make_shared<Rook>(BLACK, Point{0, 0});
-    m_board[0][SIZE - 1] = make_shared<Rook>(WHITE, Point{0, SIZE - 1});
-    m_board[SIZE - 1][0] = make_shared<Rook>(BLACK, Point{SIZE - 1, 0});
-    m_board[SIZE - 1][SIZE - 1] = make_shared<Rook>(WHITE, Point{SIZE - 1, SIZE - 1});
+    m_board[0][0] = make_shared<Rook>(WHITE, Point{0, 0});
+    m_board[0][SIZE - 1] = make_shared<Rook>(BLACK, Point{0, SIZE - 1});
+    m_board[SIZE - 1][0] = make_shared<Rook>(WHITE, Point{SIZE - 1, 0});
+    m_board[SIZE - 1][SIZE - 1] = make_shared<Rook>(BLACK, Point{SIZE - 1, SIZE - 1});
 
     // Knights.
-    m_board[1][0] = make_shared<Knight>(BLACK, Point{1, 0});
-    m_board[1][SIZE - 1] = make_shared<Knight>(WHITE, Point{1, SIZE - 1});
-    m_board[SIZE - 2][0] = make_shared<Knight>(BLACK, Point{SIZE - 2, 0});
-    m_board[SIZE - 2][SIZE - 1] = make_shared<Knight>(WHITE, Point{SIZE - 2, SIZE - 1});
+    m_board[1][0] = make_shared<Knight>(WHITE, Point{1, 0});
+    m_board[1][SIZE - 1] = make_shared<Knight>(BLACK, Point{1, SIZE - 1});
+    m_board[SIZE - 2][0] = make_shared<Knight>(WHITE, Point{SIZE - 2, 0});
+    m_board[SIZE - 2][SIZE - 1] = make_shared<Knight>(BLACK, Point{SIZE - 2, SIZE - 1});
 
     // Bishops.
-    m_board[2][0] = make_shared<Bishop>(BLACK, Point{2, 0});
-    m_board[2][SIZE - 1] = make_shared<Bishop>(WHITE, Point{2, SIZE - 1});
-    m_board[SIZE - 3][0] = make_shared<Bishop>(BLACK, Point{SIZE - 3, 0});
-    m_board[SIZE - 3][SIZE - 1] = make_shared<Bishop>(WHITE, Point{SIZE - 3, SIZE - 1});
+    m_board[2][0] = make_shared<Bishop>(WHITE, Point{2, 0});
+    m_board[2][SIZE - 1] = make_shared<Bishop>(BLACK, Point{2, SIZE - 1});
+    m_board[SIZE - 3][0] = make_shared<Bishop>(WHITE, Point{SIZE - 3, 0});
+    m_board[SIZE - 3][SIZE - 1] = make_shared<Bishop>(BLACK, Point{SIZE - 3, SIZE - 1});
 
     // Pawns.
     for (dimension i = 0; i < SIZE; i++) {
-        m_board[i][1] = make_shared<Pawn>(BLACK, Point{i, 1});
-        m_board[i][SIZE - 2] = make_shared<Pawn>(WHITE, Point{i, SIZE - 2});
+        m_board[i][1] = make_shared<Pawn>(WHITE, Point{i, 1});
+        m_board[i][SIZE - 2] = make_shared<Pawn>(BLACK, Point{i, SIZE - 2});
     }
 }
 
@@ -59,7 +59,7 @@ void Board::draw_board(const set<Point> &options) const {
     cout << endl;
     unsigned char background;
 
-    for (int i = 0; i < SIZE; i++) {
+    for (int i = SIZE - 1; i >= 0; i--) {
         print_index(i + 1);
         for (int j = 0; j < SIZE; j++) {
             if (m_board[j][i] == nullptr) {
@@ -69,15 +69,14 @@ void Board::draw_board(const set<Point> &options) const {
 #if DISPLAY_HINTS
             if ((options.find(Point(j, i)) == options.end())) {
 #endif // DISPLAY_HINTS
-                background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
+                background = (i + j) % 2 ? colors::light_gray : colors::dark_gray;
 #if DISPLAY_HINTS
             } else {
-                background = (i + j) % 2 ? colors::dark_green : colors::light_green;
+                background = (i + j) % 2 ? colors::light_green : colors::dark_green;
             }
 #endif // DISPLAY_HINTS
             print_colorful(m_board[j][i]->get_representation(),
-                           (m_board[j][i]->get_color()) ? colors::white : colors::black,
-                           background);
+                           (m_board[j][i]->get_color()) ? colors::white : colors::black, background);
         }
         print_index(i + 1);
         cout << endl;
@@ -99,7 +98,7 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
     auto threatened = get_threatened(possible_moves, possible_plays, chosen, turn);
 #endif // DISPLAY_THREATENED
 
-    for (int i = 0; i < SIZE; i++) {
+    for (int i = SIZE - 1; i >= 0; i--) {
         print_index(i + 1);
         for (int j = 0; j < SIZE; j++) {
             if (Point(j, i) == chosen) {
@@ -109,15 +108,15 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
 #else
                 }
 #endif // DISPLAY_HINTS
-                background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
+                background = (i + j) % 2 ? colors::light_gray : colors::dark_gray;
 #if DISPLAY_HINTS
             } else {
 #if DISPLAY_THREATENED
                 if (threatened.find(Point(j, i)) != threatened.end()) {
-                    background = (i + j) % 2 ? colors::dark_red : colors::light_red;
+                    background = (i + j) % 2 ? colors::light_red : colors::dark_red;
                 } else {
 #endif // DISPLAY_THREATENED
-                    background = (i + j) % 2 ? colors::dark_green : colors::light_green;
+                    background = (i + j) % 2 ? colors::light_green : colors::dark_green;
 #if DISPLAY_THREATENED
                 }
 #endif // DISPLAY_THREATENED
@@ -128,8 +127,7 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
                 print_colorful("  ", colors::black, background);
             } else {
                 print_colorful(m_board[j][i]->get_representation(),
-                               (m_board[j][i]->get_color()) ? colors::white : colors::black,
-                               background);
+                               (m_board[j][i]->get_color()) ? colors::white : colors::black, background);
             }
         }
         print_index(i + 1);
