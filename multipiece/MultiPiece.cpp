@@ -4,27 +4,27 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
     set<play> plays;
     const auto &board_data = board.get_board();
 
-    unsigned char initial_y = color ? 7 : 0;
+    unsigned char initial_y = color ? white_king_initial_y : black_king_initial_y;
 
-    auto possible_king = board_data[4][initial_y];
+    auto possible_king = board_data[king_initial_x][initial_y];
     if ((possible_king == nullptr) || (possible_king->get_color() != color) ||
         (possible_king->get_representation() != "Kg") || (possible_king->moved()) ||
         (board.is_threatened({4, initial_y}, color, turn, true))) {
         return move(plays);
     }
 
-    for (const auto &x : {0, 7}) {
+    for (const auto &x : {left_rook_initial_x, right_rook_initial_x}) {
         auto castling = board_data[x][initial_y];
         if ((castling == nullptr) || (castling->get_color() != color) ||
             (castling->get_representation() != "Rk") || (castling->moved())) {
             continue;
         }
 
-        short int movement = (x > 4) ? 1 : -1;
+        short int movement = (x > king_initial_x) ? 1 : -1;
         bool valid = true;
-        for (short int current_x = 4 + movement; current_x != x; current_x += movement) {
+        for (short int current_x = king_initial_x + movement; current_x != x; current_x += movement) {
             if ((board_data[current_x][initial_y] != nullptr) ||
-                (((movement == 1) ? current_x <= 4 + 2 : current_x >= 4 - 2) &&
+                (((movement == 1) ? current_x <= king_initial_x + 2 : current_x >= king_initial_x - 2) &&
                  board.is_threatened({current_x, initial_y}, color, turn + 1, true))) {
                 valid = false;
                 break;
@@ -32,12 +32,12 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
         }
 
         if (valid) {
-            King king(*board_data[4][initial_y]);
+            King king(*board_data[king_initial_x][initial_y]);
             Rook rock(*board_data[x][initial_y]);
-            king.do_move(turn, Point(4 + (movement * 2), initial_y));
-            rock.do_move(turn, Point(4 + movement, initial_y));
-            plays.insert({{board_data[4][initial_y], make_shared<King>(king)},
-                          {board_data[x][initial_y], make_shared<Rook>(rock)}});
+            king.do_move(turn, Point(king_initial_x + (movement * 2), initial_y));
+            rock.do_move(turn, Point(king_initial_x + movement, initial_y));
+            plays.insert({{board_data[king_initial_x][initial_y], make_shared<King>(king)},
+                          {board_data[x][initial_y],              make_shared<Rook>(rock)}});
         }
     }
 

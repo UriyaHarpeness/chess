@@ -27,5 +27,8 @@ int main(int argc, char *argv[]) {
     // Play.
     g.play_game();
 
+    // todo: try to look at stockfish or other opponent options.
+    // todo: support multiplier, with one server listening and client afterwards, good for stockfish.
+
     return 0;
 }

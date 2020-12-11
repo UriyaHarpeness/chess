@@ -9,7 +9,8 @@ const set<char> Game::promotion_options = {'q', 'r', 'b', 'n'};
 const map<GameStatus, string> Game::finish_messages = {{BLACK_RESIGN, "Black has quit, either a professional forfeit, or a total coward."},
                                                        {WHITE_RESIGN, "White has resign, it's so like him, isn't it?"},
                                                        {BLACK_WIN,    "OUR HEAVY WEIGHT WRESTLING CHAMPION IS... Oh, wrong match, black wins, woohoo..."},
-                                                       {WHITE_WIN,    "Congrats, white, now everyone hates you."}};
+                                                       {WHITE_WIN,    "Congrats, white, now everyone hates you."},
+                                                       {PAT,          "You are both just terrible."}};
 
 Game::Game(bool walk_through, string pre_moves) : m_walk_through(walk_through), m_pre_moves(move(pre_moves)),
                                                   m_pre_moves_index(0), m_board(), m_turn(0) {}
@@ -23,9 +24,10 @@ set<Point> Game::get_keys(const map<Point, T> &mapping) {
     return move(points);
 }
 
-Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
+Point Game::moves_fast_match(const set<Point> &options, char input, bool &reselect, bool get) {
+    reselect = false;
 #if AUTOFILL
-    if (options.size() == 1) {
+    if (!is_args_input() && (options.size() == 1)) {
         cout << (char) (options.begin()->get_x() + 'A') << options.begin()->get_y() + 1 << endl;
         return *options.begin();
     }
@@ -41,6 +43,12 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
             get = true;
         } while (isspace(input));
 
+        if (input == reselect_action) {
+            cout << input << endl;
+            reselect = true;
+            return {-1, -1};
+        }
+
         copy_if(options.begin(), options.end(), inserter(matches, matches.end()),
                 [&, input](const auto &point) {
                     return ((isdigit(input) && (point.get_y() == input - '0' - 1)) ||
@@ -52,9 +60,9 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
     cout << (char) toupper(input);
 
 #if AUTOFILL
-    if (matches.size() == 1) {
+    if (!is_args_input() && (matches.size() == 1)) {
         cout << (char) (isalpha(input) ? (char) matches.begin()->get_y() + '0' + 1 :
-                        (char) matches.begin()->get_x() + 'a') << endl;
+                        (char) matches.begin()->get_x() + 'A') << endl;
         return *matches.begin();
     }
 #endif // AUTOFILL
@@ -65,6 +73,12 @@ Point Game::moves_fast_match(const set<Point> &options, char input, bool get) {
         do {
             input = (char) tolower(get_input());
         } while (isspace(input));
+
+        if (input == reselect_action) {
+            cout << input << endl;
+            reselect = true;
+            return {-1, -1};
+        }
 
         copy_if(matches.begin(), matches.end(), inserter(final_matches, final_matches.end()),
                 [&, input](const auto &point) {
@@ -96,15 +110,21 @@ char Game::getch() {
 }
 
 char Game::get_input() {
-    if (m_pre_moves.length() > m_pre_moves_index) {
+    if (is_args_input()) {
         return m_pre_moves[m_pre_moves_index++];
     }
     return getch();
 }
 
+bool Game::is_args_input() {
+    return m_pre_moves.length() > m_pre_moves_index;
+}
+
 void Game::turn(GameStatus &status, Color color) {
     m_turn++;
     char action;
+    bool reselect;
+    set<Point> piece_options;
     set<Point> options;
 
     map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
@@ -121,25 +141,29 @@ void Game::turn(GameStatus &status, Color color) {
 
     m_board.filter_illegal_moves(possible_moves, possible_play_moves, color, m_turn);
 
-    options = get_keys(possible_moves);
+    piece_options = get_keys(possible_moves);
     auto tmp = get_keys(possible_play_moves);
-    options.insert(tmp.begin(), tmp.end());
-
-    if (options.empty()) {
-        status = color ? BLACK_WIN : WHITE_WIN;
-        return;
-    }
+    piece_options.insert(tmp.begin(), tmp.end());
 
     const auto king_position = m_board.find_king(color);
     const bool king_threatened = m_board.is_threatened(king_position, color, m_turn, true);
     cout << endl << (color ? "White" : "Black") << "'s turn" << (king_threatened ? " (Check)" : "") << endl;
 
-    m_board.draw_board(options);
+    if (piece_options.empty()) {
+        if (king_threatened) {
+            status = color ? BLACK_WIN : WHITE_WIN;
+        } else {
+            status = PAT;
+        }
+        return;
+    }
 
     set<Point> piece_matches;
 
     // Loop until a valid action has been made.
     while (!status) {
+        m_board.draw_board(piece_options, color, m_turn);
+
         // Get action.
         cout << "Enter action: ";
 
@@ -162,11 +186,12 @@ void Game::turn(GameStatus &status, Color color) {
                 }
                 cout << " ";
             }
-            cout << endl;
+            cout << endl << endl;
         } else {
             cout << endl << "Enter source: ";
 
-            Point source = Game::moves_fast_match(options, action);
+            Point source = Game::moves_fast_match(piece_options, action, reselect);
+            if (reselect) continue;
 
             options.clear();
             if (possible_moves.find(source) != possible_moves.end()) {
@@ -183,7 +208,8 @@ void Game::turn(GameStatus &status, Color color) {
             m_board.draw_board(options, optional_plays, source, m_turn);
             cout << "Enter destination: ";
 
-            Point destination = Game::moves_fast_match(options, action, true);
+            Point destination = Game::moves_fast_match(options, action, reselect, true);
+            if (reselect) continue;
 
             if ((possible_moves.find(source) != possible_moves.end()) &&
                 (possible_moves.at(source).find(destination) != possible_moves.at(source).end())) {
@@ -224,7 +250,7 @@ GameStatus Game::play_game() {
     }
 
     cout << endl << "Final board" << endl;
-    m_board.draw_board({});
+    m_board.draw_board({}, color, m_turn);
 
     cout << endl << finish_messages.at(status) << endl;
 

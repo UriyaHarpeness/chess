@@ -40,7 +40,7 @@ public:
 
     static void print_char_index(char i);
 
-    void draw_board(const set<Point> &options) const;
+    void draw_board(const set<Point> &options, Color color, unsigned int turn) const;
 
     void draw_board(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
                     unsigned int turn);
@@ -64,6 +64,8 @@ public:
     [[nodiscard]] bool is_threatened(const Point &position, Color color, unsigned int turn, bool threatening) const;
 
     [[nodiscard]] bool is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const;
+
+    [[nodiscard]] set<Point> get_threatened(Color color, unsigned int turn) const;
 
     void
     filter_illegal_moves(map<Point, set<Point>> &possible_moves, map<Point, map<Point, play>> &possible_play_moves,

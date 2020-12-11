@@ -16,11 +16,14 @@ enum GameStatus : char {
     BLACK_RESIGN = 1,
     WHITE_RESIGN = 2,
     BLACK_WIN = 3,
-    WHITE_WIN = 4
+    WHITE_WIN = 4,
+    PAT = 5
 };
 
 class Game {
 public:
+    static const char reselect_action = 'u';
+
     static const set<char> promotion_options;
 
     /// Quit action identifiers.
@@ -33,7 +36,7 @@ public:
     template<class T>
     static set<Point> get_keys(const map<Point, T> &mapping);
 
-    Point moves_fast_match(const set<Point> &options, char input, bool get = false);
+    Point moves_fast_match(const set<Point> &options, char input, bool &reselect, bool get = false);
 
     /**
      * Get single keyboard input without enter.
@@ -46,6 +49,8 @@ public:
     static char getch();
 
     char get_input();
+
+    bool is_args_input();
 
     void turn(GameStatus &status, Color color);
 

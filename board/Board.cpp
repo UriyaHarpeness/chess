@@ -53,26 +53,38 @@ void Board::print_char_index(const char i) {
     print_colorful({i, ' '}, (i % 2) ? 250 : 237, (i % 2) ? 237 : 250);
 }
 
-void Board::draw_board(const set<Point> &options) const {
+void Board::draw_board(const set<Point> &options, Color color, unsigned int turn) const {
     cout << "  ";
     for (dimension y = 0; y < SIZE; y++) print_char_index('A' + y);
     cout << endl;
     unsigned char background;
 
+#if DISPLAY_THREATENED
+    auto threatened = get_threatened(color, turn);
+#endif // DISPLAY_THREATENED
+
     for (int i = SIZE - 1; i >= 0; i--) {
         print_index(i + 1);
         for (int j = 0; j < SIZE; j++) {
             if (m_board[j][i] == nullptr) {
-                print_colorful("  ", 0, ((i + j) % 2 ? colors::dark_gray : colors::light_gray));
+                print_colorful("  ", 0, ((i + j) % 2 ? colors::light_gray : colors::dark_gray));
                 continue;
             }
 #if DISPLAY_HINTS
-            if ((options.find(Point(j, i)) == options.end())) {
+            if ((options.find(Point(j, i)) != options.end())) {
+#if DISPLAY_THREATENED
+                if (threatened.find(Point(j, i)) != threatened.end()) {
+                    background = (i + j) % 2 ? colors::light_red : colors::dark_red;
+                } else {
+#endif // DISPLAY_THREATENED
 #endif // DISPLAY_HINTS
-                background = (i + j) % 2 ? colors::light_gray : colors::dark_gray;
+                    background = (i + j) % 2 ? colors::light_green : colors::dark_green;
+#if DISPLAY_THREATENED
+                }
+#endif // DISPLAY_THREATENED
 #if DISPLAY_HINTS
             } else {
-                background = (i + j) % 2 ? colors::light_green : colors::dark_green;
+                background = (i + j) % 2 ? colors::light_gray : colors::dark_gray;
             }
 #endif // DISPLAY_HINTS
             print_colorful(m_board[j][i]->get_representation(),
@@ -251,6 +263,25 @@ bool Board::is_threatened(const Point &position, Color color, unsigned int turn,
 
 bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const {
     return is_threatened(piece->get_position(), piece->get_color(), turn, threatening);
+}
+
+set<Point> Board::get_threatened(Color color, unsigned int turn) const {
+    set<Point> threatened;
+    const map<Point, set<Point>> possible_moves = get_possible_moves(color ? BLACK : WHITE, turn + 1);
+    for_each(possible_moves.begin(), possible_moves.end(),
+             [&threatened](const auto &moves) { threatened.insert(moves.second.begin(), moves.second.end()); });
+
+    map<Point, map<Point, play>> possible_play_moves;
+    const auto possible_plays = MultiPiece::get_plays(*this, color ? BLACK : WHITE, turn + 1, true);
+    for (const auto &possible_play : possible_plays) {
+        for (const auto &single_change : possible_play) {
+            if ((single_change.first != nullptr) && (single_change.second == nullptr)) {
+                threatened.insert(single_change.first->get_position());
+            }
+        }
+    }
+
+    return move(threatened);
 }
 
 void

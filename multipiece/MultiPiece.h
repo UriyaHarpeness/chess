@@ -7,6 +7,12 @@
 class Board;
 
 namespace MultiPiece {
+    static dimension white_king_initial_y = 0;
+    static dimension black_king_initial_y = 7;
+    static dimension king_initial_x = 4;
+    static dimension left_rook_initial_x = 0;
+    static dimension right_rook_initial_x = 7;
+
     set<play> get_castling(const Board &board, Color color, unsigned int turn);
 
     set<play> get_en_passant(const Board &board, Color color, unsigned int turn);
