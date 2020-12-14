@@ -85,9 +85,9 @@ set<play> MultiPiece::get_plays(const Board &board, Color color, unsigned int tu
     return move(plays);
 }
 
-bool MultiPiece::is_promotion(const Board &board, const Point &destination) {
+bool MultiPiece::is_promotion(const Board &board, const Point &source, const Point &destination) {
     const auto &board_data = board.get_board();
-    auto piece = board_data[destination.get_x()][destination.get_y()];
+    auto piece = board_data[source.get_x()][source.get_y()];
     return ((piece->get_representation() == "Pn") && (destination.get_y() == (piece->get_color() ? 0 : 7)));
 }
 

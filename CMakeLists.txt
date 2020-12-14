@@ -25,5 +25,11 @@ add_executable(chess main.cpp
         pieces/Queen.h
         pieces/Rook.cpp
         pieces/Rook.h
+        players/Client.cpp
+        players/Client.h
+        players/Local.cpp
+        players/Local.h
+        players/Player.cpp
+        players/Player.h
         point/Point.cpp
         point/Point.h)

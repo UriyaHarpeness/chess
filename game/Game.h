@@ -2,6 +2,7 @@
 
 #include "../board/Board.h"
 #include "../multipiece/MultiPiece.h"
+#include "../players/Player.h"
 
 #include <algorithm>
 #include <iostream>
@@ -22,31 +23,9 @@ enum GameStatus : char {
 
 class Game {
 public:
-    static const char reselect_action = 'u';
-
-    static const set<char> promotion_options;
-
-    /// Quit action identifiers.
-    static const set<char> quit_actions;
-
     static const map<GameStatus, string> finish_messages;
 
-    Game(bool walk_through, string pre_moves);
-
-    template<class T>
-    static set<Point> get_keys(const map<Point, T> &mapping);
-
-    Point moves_fast_match(const set<Point> &options, char input, bool &reselect, bool get = false);
-
-    /**
-     * Get single keyboard input without enter.
-     *
-     * A linux implementation for the windows `getch()` function.
-     * Based on https://stackoverflow.com/questions/7469139/what-is-the-equivalent-to-getch-getche-in-linux.
-     *
-     * @return  The input character.
-     */
-    static char getch();
+    Game(unique_ptr<Player> white_player, unique_ptr<Player> black_player, bool walk_through, string pre_moves);
 
     char get_input();
 
@@ -68,4 +47,8 @@ private:
     unsigned int m_turn;
 
     vector<tuple<Point, Point, char>> m_turns;
+
+    unique_ptr<Player> m_white_player;
+
+    unique_ptr<Player> m_black_player;
 };
