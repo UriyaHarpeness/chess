@@ -5,9 +5,9 @@
 const map<GameStatus, string> Game::finish_messages = {
         {BLACK_RESIGN, "Black has quit, either a professional forfeit, or a total coward."},
         {WHITE_RESIGN, "White has resign, it's so like him, isn't it?"},
-        {BLACK_WIN, "OUR HEAVY WEIGHT WRESTLING CHAMPION IS... Oh, wrong match, black wins, woohoo..."},
-        {WHITE_WIN, "Congrats, white, now everyone hates you."},
-        {PAT, "You are both just terrible."}};
+        {BLACK_WIN,    "OUR HEAVY WEIGHT WRESTLING CHAMPION IS... Oh, wrong match, black wins, woohoo..."},
+        {WHITE_WIN,    "Congrats, white, now everyone hates you."},
+        {PAT,          "You are both just terrible."}};
 
 Game::Game(unique_ptr<Player> white_player, unique_ptr<Player> black_player, bool walk_through, string pre_moves)
         : m_white_player(move(white_player)), m_black_player(move(black_player)), m_walk_through(walk_through),
@@ -65,13 +65,14 @@ void Game::turn(GameStatus &status, Color color) {
 
     const unique_ptr<Player> &player = (color ? m_white_player : m_black_player);
     const unique_ptr<Player> &other_player = (color ? m_black_player : m_white_player);
-    auto t = player->get_turn(m_board, m_turns, possible_moves, possible_play_moves, color, m_turn);
-    Point source = get<0>(t);
-    Point destination = get<1>(t);
-    char promotion = get<2>(t);
+    auto turn = player->get_turn(m_board, m_turns, possible_moves, possible_play_moves, color, m_turn);
+    other_player->forward_turn(turn);
+    Point source = get<0>(turn);
+    Point destination = get<1>(turn);
+    char promotion = get<2>(turn);
 
     if (tie(get<0>(Player::quit_turn), get<1>(Player::quit_turn), get<2>(Player::quit_turn)) ==
-        tie(get<0>(t), get<1>(t), get<2>(t))) {
+        tie(get<0>(turn), get<1>(turn), get<2>(turn))) {
         status = color ? WHITE_RESIGN : BLACK_RESIGN;
         return;
     }
@@ -88,9 +89,7 @@ void Game::turn(GameStatus &status, Color color) {
         MultiPiece::perform_promotion(m_board, destination, promotion);
     }
 
-    other_player->forward_turn(t);
-
-    m_turns.emplace_back(t);
+    m_turns.emplace_back(turn);
 
     // if ((m_pre_moves.length() - 1 > m_pre_moves_index) && m_walk_through) getch();
 }
@@ -102,6 +101,8 @@ GameStatus Game::play_game() {
     GameStatus status = ONGOING;
 
     while (!status) {
+        cout << endl << "Current board" << endl;
+        m_board.draw_board({}, color, m_turn);
         turn(status, color);
         color = color ? BLACK : WHITE;
     }

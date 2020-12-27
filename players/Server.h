@@ -10,11 +10,11 @@
 
 using namespace std;
 
-class Client : public Player {
+class Server : public Player {
 public:
-    Client(const string &address, int port);
+    Server(const string &address, int port);
 
-    ~Client();
+    ~Server();
 
     turn_t
     get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, map<Point, set<Point>> possible_moves,
@@ -24,4 +24,6 @@ public:
 
 private:
     int m_socket;
+
+    int m_server_socket;
 };

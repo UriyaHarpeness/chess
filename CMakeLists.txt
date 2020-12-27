@@ -31,5 +31,7 @@ add_executable(chess main.cpp
         players/Local.h
         players/Player.cpp
         players/Player.h
+        players/Server.cpp
+        players/Server.h
         point/Point.cpp
         point/Point.h)

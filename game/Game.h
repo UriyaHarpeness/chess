@@ -46,7 +46,7 @@ private:
 
     unsigned int m_turn;
 
-    vector<tuple<Point, Point, char>> m_turns;
+    vector<turn_t> m_turns;
 
     unique_ptr<Player> m_white_player;
 

@@ -8,7 +8,7 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
     reselect = false;
 #if AUTOFILL
     if (options.size() == 1) {
-        cout << (char) (options.begin()->get_x() + 'A') << options.begin()->get_y() + 1 << endl;
+        cout << (char) (options.begin()->get_x() + 'a') << options.begin()->get_y() + 1 << endl;
         return *options.begin();
     }
 #endif // AUTOFILL
@@ -37,12 +37,12 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
     } while (matches.empty());
 
     const bool first_char = isalpha(input);
-    cout << (char) toupper(input);
+    cout << input;
 
 #if AUTOFILL
     if (matches.size() == 1) {
         cout << (char) (isalpha(input) ? (char) matches.begin()->get_y() + '0' + 1 :
-                        (char) matches.begin()->get_x() + 'A') << endl;
+                        (char) matches.begin()->get_x() + 'a') << endl;
         return *matches.begin();
     }
 #endif // AUTOFILL
@@ -67,7 +67,7 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
                 });
     } while (final_matches.size() != 1);
 
-    cout << (char) toupper(input) << endl;
+    cout << input << endl;
 
     return *final_matches.begin();
 }
@@ -121,10 +121,10 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
             // Print.
             cout << action << endl << "Turns: ";
             for (const auto &single_turn : turns) {
-                cout << (char) (get<0>(single_turn).get_x() + 'A') << get<0>(single_turn).get_y() + 1
-                     << (char) (get<1>(single_turn).get_x() + 'A') << get<1>(single_turn).get_y() + 1;
+                cout << (char) (get<0>(single_turn).get_x() + 'a') << get<0>(single_turn).get_y() + 1
+                     << (char) (get<1>(single_turn).get_x() + 'a') << get<1>(single_turn).get_y() + 1;
                 if (get<2>(single_turn)) {
-                    cout << (char) toupper(get<2>(single_turn));
+                    cout << get<2>(single_turn);
                 }
                 cout << " ";
             }
@@ -159,7 +159,7 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
                 do {
                     promotion = (char) tolower(getch());
                 } while (isspace(promotion) || (promotion_options.find(promotion) == promotion_options.end()));
-                cout << (char) toupper(promotion) << endl;
+                cout << promotion << endl;
             }
 
             return {source, destination, promotion};

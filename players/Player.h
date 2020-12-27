@@ -13,6 +13,8 @@ class Player {
 public:
     static const turn_t quit_turn;
 
+    virtual ~Player() = default;
+
     /*
      * template<class T>
         static set<Point> get_keys(const map<Point, T> &mapping);
@@ -20,6 +22,10 @@ public:
     static set<Point> get_keys(const map<Point, set<Point>> &possible_moves);
 
     static set<Point> get_keys(const map<Point, map<Point, play>> &possible_play_moves);
+
+    static string turn_to_string(const turn_t &turn);
+
+    static turn_t string_to_turn(const string &turn);
 
     virtual turn_t
     get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, map<Point, set<Point>> possible_moves,
