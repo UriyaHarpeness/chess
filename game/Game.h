@@ -3,6 +3,7 @@
 #include "../board/Board.h"
 #include "../multipiece/MultiPiece.h"
 #include "../players/Player.h"
+#include "../players/Local.h"
 
 #include <algorithm>
 #include <iostream>
@@ -25,11 +26,9 @@ class Game {
 public:
     static const map<GameStatus, string> finish_messages;
 
-    Game(unique_ptr<Player> white_player, unique_ptr<Player> black_player, bool walk_through, string pre_moves);
+    Game(unique_ptr<Player> white_player, unique_ptr<Player> black_player, bool walk_through, const string &pre_moves);
 
-    char get_input();
-
-    bool is_args_input();
+    void setup_turns(const string &pre_turns);
 
     void turn(GameStatus &status, Color color);
 
@@ -38,9 +37,7 @@ public:
 private:
     bool m_walk_through;
 
-    const string m_pre_moves;
-
-    size_t m_pre_moves_index;
+    vector<turn_t> m_pre_turns;
 
     Board m_board;
 

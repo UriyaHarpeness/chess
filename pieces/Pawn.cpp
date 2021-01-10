@@ -1,6 +1,6 @@
 #include "Pawn.h"
 
-set<Point> Pawn::get_possible_positions(const BoardData &board, unsigned int turn) const {
+set<Point> Pawn::get_possible_positions(const BoardData &board) const {
     set<Point> possible_positions;
 
     // Normal move.

@@ -29,6 +29,8 @@ add_executable(chess main.cpp
         players/Client.h
         players/Local.cpp
         players/Local.h
+        players/NetworkPlayer.cpp
+        players/NetworkPlayer.h
         players/Player.cpp
         players/Player.h
         players/Server.cpp

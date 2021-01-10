@@ -8,7 +8,7 @@ public:
 
     Pawn(Color color, const Point &position) : Piece(color, position) {}
 
-    [[nodiscard]] set<Point> get_possible_positions(const BoardData &board, unsigned int turn) const override;
+    [[nodiscard]] set<Point> get_possible_positions(const BoardData &board) const override;
 
     [[nodiscard]] inline string get_representation() const override { return "Pn"; };
 

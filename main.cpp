@@ -5,8 +5,8 @@
 
 using namespace std;
 
-unique_ptr <Player> create_player(const string &argument) {
-    vector <string> split_arguments;
+unique_ptr<Player> create_player(const string &argument) {
+    vector<string> split_arguments;
     int index = 0, new_index;
     do {
         new_index = argument.find(':', index);
@@ -30,17 +30,12 @@ unique_ptr <Player> create_player(const string &argument) {
 int main(int argc, char *argv[]) {
     // Set default game settings.
     bool walk_through = false;
-    string state;
-    unique_ptr <Player> white;
-    unique_ptr <Player> black;
-
-    // Check input.
-    // if ((argc > 3) || ((argc >= 2) && (string(argv[1]) == "-h"))) {
-    //     throw runtime_error("Usage: chess [--walk-through] [MOVES]");
-    // }
+    string turns;
+    unique_ptr<Player> white;
+    unique_ptr<Player> black;
 
     // Parse arguments.
-    vector <string> arguments(argc - 1);
+    vector<string> arguments(argc - 1);
     for (int i = 1; i < argc; i++) {
         arguments[i - 1] = argv[i];
     }
@@ -51,8 +46,8 @@ int main(int argc, char *argv[]) {
         } else if (arguments[index] == "--black") {
             black = create_player(arguments[index + 1]);
             index++;
-        } else if (arguments[index] == "--state") {
-            state = arguments[index + 1];
+        } else if (arguments[index] == "--turns") {
+            turns = arguments[index + 1];
             index++;
         } else if (arguments[index] == "--walk-through") {
             walk_through = true;
@@ -61,17 +56,19 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ((black == nullptr) || (white == nullptr)) {
-        throw runtime_error("Black and white players need to be defined");
+    // Fallback default players if not specified.
+    if (white == nullptr) {
+        white = create_player("local");
+    }
+    if (black == nullptr) {
+        black = create_player("local");
     }
 
     // Initialize the game.
-    Game g(move(white), move(black), walk_through, state);
+    Game game(move(white), move(black), walk_through, turns);
 
     // Play.
-    g.play_game();
-
-    // todo: support specified previous moves.
+    game.play_game();
 
     return 0;
 }

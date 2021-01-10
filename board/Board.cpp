@@ -157,7 +157,7 @@ map<Point, set<Point>> Board::get_possible_moves(Color color, unsigned int turn)
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if ((m_board[j][i] == nullptr) || (m_board[j][i]->get_color() != color)) continue;
-            auto piece_possible_moves = m_board[j][i]->get_possible_positions(m_board, turn);
+            auto piece_possible_moves = m_board[j][i]->get_possible_positions(m_board);
             if (!piece_possible_moves.empty()) {
                 possible_moves[Point(j, i)] = piece_possible_moves;
             }
@@ -212,8 +212,6 @@ void Board::undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, co
 set<Point>
 Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
                       unsigned int turn) {
-    // todo: king is a special case that cannot move to a place that is threatened, it needs to be checked separately,
-    // for cases where he cannot move, and special case when he's already threatened, meaning mate.
     set<Point> threatened;
 
     for (const auto &move : possible_moves) {

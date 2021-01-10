@@ -89,6 +89,12 @@ char Local::getch() {
     return ch;
 }
 
+vector<turn_t> Local::get_turns() {
+    return {};
+}
+
+void Local::forward_turns(const vector<turn_t> &turns) {}
+
 turn_t
 Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, map<Point, set<Point>> possible_moves,
                 map<Point, map<Point, play>> possible_play_moves, Color color, unsigned int turn) {
