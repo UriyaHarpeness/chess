@@ -2,4 +2,4 @@
 
 #define DISPLAY_HINTS true
 
-#define AUTOFILL false
+#define AUTOFILL true

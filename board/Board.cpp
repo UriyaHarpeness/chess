@@ -2,35 +2,35 @@
 
 Board::Board() : m_board(8, vector<shared_ptr<Piece>>(8, nullptr)) {
     // Kings.
-    m_board[4][0] = make_shared<King>(BLACK, Point{4, 0});
-    m_board[4][SIZE - 1] = make_shared<King>(WHITE, Point{4, SIZE - 1});
+    m_board[4][0] = make_shared<King>(WHITE, Point{4, 0});
+    m_board[4][SIZE - 1] = make_shared<King>(BLACK, Point{4, SIZE - 1});
 
     // Queens.
-    m_board[3][0] = make_shared<Queen>(BLACK, Point{3, 0});
-    m_board[3][SIZE - 1] = make_shared<Queen>(WHITE, Point{3, SIZE - 1});
+    m_board[3][0] = make_shared<Queen>(WHITE, Point{3, 0});
+    m_board[3][SIZE - 1] = make_shared<Queen>(BLACK, Point{3, SIZE - 1});
 
     // Rooks.
-    m_board[0][0] = make_shared<Rook>(BLACK, Point{0, 0});
-    m_board[0][SIZE - 1] = make_shared<Rook>(WHITE, Point{0, SIZE - 1});
-    m_board[SIZE - 1][0] = make_shared<Rook>(BLACK, Point{SIZE - 1, 0});
-    m_board[SIZE - 1][SIZE - 1] = make_shared<Rook>(WHITE, Point{SIZE - 1, SIZE - 1});
+    m_board[0][0] = make_shared<Rook>(WHITE, Point{0, 0});
+    m_board[0][SIZE - 1] = make_shared<Rook>(BLACK, Point{0, SIZE - 1});
+    m_board[SIZE - 1][0] = make_shared<Rook>(WHITE, Point{SIZE - 1, 0});
+    m_board[SIZE - 1][SIZE - 1] = make_shared<Rook>(BLACK, Point{SIZE - 1, SIZE - 1});
 
     // Knights.
-    m_board[1][0] = make_shared<Knight>(BLACK, Point{1, 0});
-    m_board[1][SIZE - 1] = make_shared<Knight>(WHITE, Point{1, SIZE - 1});
-    m_board[SIZE - 2][0] = make_shared<Knight>(BLACK, Point{SIZE - 2, 0});
-    m_board[SIZE - 2][SIZE - 1] = make_shared<Knight>(WHITE, Point{SIZE - 2, SIZE - 1});
+    m_board[1][0] = make_shared<Knight>(WHITE, Point{1, 0});
+    m_board[1][SIZE - 1] = make_shared<Knight>(BLACK, Point{1, SIZE - 1});
+    m_board[SIZE - 2][0] = make_shared<Knight>(WHITE, Point{SIZE - 2, 0});
+    m_board[SIZE - 2][SIZE - 1] = make_shared<Knight>(BLACK, Point{SIZE - 2, SIZE - 1});
 
     // Bishops.
-    m_board[2][0] = make_shared<Bishop>(BLACK, Point{2, 0});
-    m_board[2][SIZE - 1] = make_shared<Bishop>(WHITE, Point{2, SIZE - 1});
-    m_board[SIZE - 3][0] = make_shared<Bishop>(BLACK, Point{SIZE - 3, 0});
-    m_board[SIZE - 3][SIZE - 1] = make_shared<Bishop>(WHITE, Point{SIZE - 3, SIZE - 1});
+    m_board[2][0] = make_shared<Bishop>(WHITE, Point{2, 0});
+    m_board[2][SIZE - 1] = make_shared<Bishop>(BLACK, Point{2, SIZE - 1});
+    m_board[SIZE - 3][0] = make_shared<Bishop>(WHITE, Point{SIZE - 3, 0});
+    m_board[SIZE - 3][SIZE - 1] = make_shared<Bishop>(BLACK, Point{SIZE - 3, SIZE - 1});
 
     // Pawns.
     for (dimension i = 0; i < SIZE; i++) {
-        m_board[i][1] = make_shared<Pawn>(BLACK, Point{i, 1});
-        m_board[i][SIZE - 2] = make_shared<Pawn>(WHITE, Point{i, SIZE - 2});
+        m_board[i][1] = make_shared<Pawn>(WHITE, Point{i, 1});
+        m_board[i][SIZE - 2] = make_shared<Pawn>(BLACK, Point{i, SIZE - 2});
     }
 }
 
@@ -53,31 +53,42 @@ void Board::print_char_index(const char i) {
     print_colorful({i, ' '}, (i % 2) ? 250 : 237, (i % 2) ? 237 : 250);
 }
 
-void Board::draw_board(const set<Point> &options) const {
+void Board::draw_board(const set<Point> &options, Color color, unsigned int turn) const {
     cout << "  ";
     for (dimension y = 0; y < SIZE; y++) print_char_index('A' + y);
     cout << endl;
     unsigned char background;
 
-    for (int i = 0; i < SIZE; i++) {
+#if DISPLAY_THREATENED
+    auto threatened = get_threatened(color, turn);
+#endif // DISPLAY_THREATENED
+
+    for (int i = SIZE - 1; i >= 0; i--) {
         print_index(i + 1);
         for (int j = 0; j < SIZE; j++) {
             if (m_board[j][i] == nullptr) {
-                print_colorful("  ", 0, ((i + j) % 2 ? colors::dark_gray : colors::light_gray));
+                print_colorful("  ", 0, ((i + j) % 2 ? colors::light_gray : colors::dark_gray));
                 continue;
             }
 #if DISPLAY_HINTS
-            if ((options.find(Point(j, i)) == options.end())) {
+            if ((options.find(Point(j, i)) != options.end())) {
+#if DISPLAY_THREATENED
+                if (threatened.find(Point(j, i)) != threatened.end()) {
+                    background = (i + j) % 2 ? colors::light_red : colors::dark_red;
+                } else {
+#endif // DISPLAY_THREATENED
 #endif // DISPLAY_HINTS
-                background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
+                    background = (i + j) % 2 ? colors::light_green : colors::dark_green;
+#if DISPLAY_THREATENED
+                }
+#endif // DISPLAY_THREATENED
 #if DISPLAY_HINTS
             } else {
-                background = (i + j) % 2 ? colors::dark_green : colors::light_green;
+                background = (i + j) % 2 ? colors::light_gray : colors::dark_gray;
             }
 #endif // DISPLAY_HINTS
             print_colorful(m_board[j][i]->get_representation(),
-                           (m_board[j][i]->get_color()) ? colors::white : colors::black,
-                           background);
+                           (m_board[j][i]->get_color()) ? colors::white : colors::black, background);
         }
         print_index(i + 1);
         cout << endl;
@@ -99,7 +110,7 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
     auto threatened = get_threatened(possible_moves, possible_plays, chosen, turn);
 #endif // DISPLAY_THREATENED
 
-    for (int i = 0; i < SIZE; i++) {
+    for (int i = SIZE - 1; i >= 0; i--) {
         print_index(i + 1);
         for (int j = 0; j < SIZE; j++) {
             if (Point(j, i) == chosen) {
@@ -109,15 +120,15 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
 #else
                 }
 #endif // DISPLAY_HINTS
-                background = (i + j) % 2 ? colors::dark_gray : colors::light_gray;
+                background = (i + j) % 2 ? colors::light_gray : colors::dark_gray;
 #if DISPLAY_HINTS
             } else {
 #if DISPLAY_THREATENED
                 if (threatened.find(Point(j, i)) != threatened.end()) {
-                    background = (i + j) % 2 ? colors::dark_red : colors::light_red;
+                    background = (i + j) % 2 ? colors::light_red : colors::dark_red;
                 } else {
 #endif // DISPLAY_THREATENED
-                    background = (i + j) % 2 ? colors::dark_green : colors::light_green;
+                    background = (i + j) % 2 ? colors::light_green : colors::dark_green;
 #if DISPLAY_THREATENED
                 }
 #endif // DISPLAY_THREATENED
@@ -128,8 +139,7 @@ void Board::draw_board(const set<Point> &possible_moves, const map<Point, play> 
                 print_colorful("  ", colors::black, background);
             } else {
                 print_colorful(m_board[j][i]->get_representation(),
-                               (m_board[j][i]->get_color()) ? colors::white : colors::black,
-                               background);
+                               (m_board[j][i]->get_color()) ? colors::white : colors::black, background);
             }
         }
         print_index(i + 1);
@@ -147,7 +157,7 @@ map<Point, set<Point>> Board::get_possible_moves(Color color, unsigned int turn)
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if ((m_board[j][i] == nullptr) || (m_board[j][i]->get_color() != color)) continue;
-            auto piece_possible_moves = m_board[j][i]->get_possible_positions(m_board, turn);
+            auto piece_possible_moves = m_board[j][i]->get_possible_positions(m_board);
             if (!piece_possible_moves.empty()) {
                 possible_moves[Point(j, i)] = piece_possible_moves;
             }
@@ -202,8 +212,6 @@ void Board::undo_move(const map<Point, shared_ptr<Piece>> &endangered_pieces, co
 set<Point>
 Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &possible_plays, const Point &chosen,
                       unsigned int turn) {
-    // todo: king is a special case that cannot move to a place that is threatened, it needs to be checked separately,
-    // for cases where he cannot move, and special case when he's already threatened, meaning mate.
     set<Point> threatened;
 
     for (const auto &move : possible_moves) {
@@ -253,6 +261,25 @@ bool Board::is_threatened(const Point &position, Color color, unsigned int turn,
 
 bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, bool threatening) const {
     return is_threatened(piece->get_position(), piece->get_color(), turn, threatening);
+}
+
+set<Point> Board::get_threatened(Color color, unsigned int turn) const {
+    set<Point> threatened;
+    const map<Point, set<Point>> possible_moves = get_possible_moves(color ? BLACK : WHITE, turn + 1);
+    for_each(possible_moves.begin(), possible_moves.end(),
+             [&threatened](const auto &moves) { threatened.insert(moves.second.begin(), moves.second.end()); });
+
+    map<Point, map<Point, play>> possible_play_moves;
+    const auto possible_plays = MultiPiece::get_plays(*this, color ? BLACK : WHITE, turn + 1, true);
+    for (const auto &possible_play : possible_plays) {
+        for (const auto &single_change : possible_play) {
+            if ((single_change.first != nullptr) && (single_change.second == nullptr)) {
+                threatened.insert(single_change.first->get_position());
+            }
+        }
+    }
+
+    return move(threatened);
 }
 
 void

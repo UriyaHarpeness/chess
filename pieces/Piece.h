@@ -29,7 +29,7 @@ class Piece {
 public:
     Piece(Color color, const Point &position) : m_color(color), m_positions({{0, position}}) {};
 
-    [[nodiscard]] virtual set<Point> get_possible_positions(const BoardData &board, unsigned int turn) const;
+    [[nodiscard]] virtual set<Point> get_possible_positions(const BoardData &board) const;
 
     [[nodiscard]] virtual const set<Point> &get_move_relative() const { return move_vector; };
 

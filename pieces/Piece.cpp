@@ -4,7 +4,7 @@ const set<Point> Piece::move_vector;
 
 const set<Point> Piece::move_relative;
 
-set<Point> Piece::get_possible_positions(const BoardData &board, unsigned int turn) const {
+set<Point> Piece::get_possible_positions(const BoardData &board) const {
     set<Point> possible_positions;
 
     Point relative;

@@ -1,11 +1,7 @@
 #include "Pawn.h"
 
-set<Point> Pawn::get_possible_positions(const BoardData &board, unsigned int turn) const {
+set<Point> Pawn::get_possible_positions(const BoardData &board) const {
     set<Point> possible_positions;
-
-    if (get_position() == Point(2, 5)) {
-        int x = 0;
-    }
 
     // Normal move.
     auto relative = get_position() + Point(0, get_move_direction());
