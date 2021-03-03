@@ -120,7 +120,7 @@ def play(white: Optional[str], black: Optional[str], skill_level: Optional[int],
     if len(turns_options) > 1:
         raise RuntimeError('Too many players setting turns (max 1)')
 
-    player.set_moves(turns_options[0])
+    player.set_moves(turns_options and turns_options[0])
     while True:
         try:
             player.turn()

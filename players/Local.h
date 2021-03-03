@@ -21,7 +21,7 @@ public:
 
     ~Local() = default;
 
-    Point moves_fast_match(const set<Point> &options, char input, bool &reselect, bool get = false);
+    static Point moves_fast_match(const set<Point> &options, char input, bool &reselect, bool get = false);
 
     /**
      * Get single keyboard input without enter.

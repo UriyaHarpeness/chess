@@ -21,5 +21,5 @@ namespace MultiPiece {
 
     bool is_promotion(const Board &board, const Point &source, const Point &destination);
 
-    void perform_promotion(Board &board, const Point &destination, const char promotion);
+    void perform_promotion(Board &board, const Point &destination, char promotion);
 };

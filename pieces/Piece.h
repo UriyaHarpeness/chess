@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../board/TwoDimensionalVector.h"
 #include "../point/Point.h"
 
 #include <memory>
@@ -18,8 +19,7 @@ enum Color : bool {
 
 class Piece;
 
-// todo: maybe unique_ptr would be better here.
-typedef vector<vector<shared_ptr<Piece>>> BoardData;
+typedef TwoDimensionalVector<shared_ptr<Piece>> BoardData;
 
 typedef pair<shared_ptr<Piece>, shared_ptr<Piece>> change;
 

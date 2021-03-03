@@ -15,14 +15,8 @@ public:
 
     virtual ~Player() = default;
 
-    /*
-     * todo: try to use the template function.
-     * template<class T>
-        static set<Point> get_keys(const map<Point, T> &mapping);
-     */
-    static set<Point> get_keys(const map<Point, set<Point>> &possible_moves);
-
-    static set<Point> get_keys(const map<Point, map<Point, play>> &possible_play_moves);
+    template<typename T>
+    static set<Point> get_keys(const map<Point, T> &points_map);
 
     static string turn_to_string(const turn_t &turn);
 
@@ -38,3 +32,12 @@ public:
 
     virtual void forward_turn(const turn_t &turn) = 0;
 };
+
+template<typename T>
+set<Point> Player::get_keys(const map<Point, T> &points_map) {
+    set<Point> points;
+
+    for_each(points_map.begin(), points_map.end(), [&points](const auto &p) { points.insert(p.first); });
+
+    return move(points);
+}

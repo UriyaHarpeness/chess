@@ -69,7 +69,7 @@ void Game::turn(GameStatus &status, Color color) {
     set<Point> piece_options;
     set<Point> options;
 
-    map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
+    map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color);
     map<Point, map<Point, play>> possible_play_moves;
     const auto possible_plays = MultiPiece::get_plays(m_board, color, m_turn, false);
     for (const auto &possible_play : possible_plays) {

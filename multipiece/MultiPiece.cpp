@@ -6,7 +6,7 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
 
     unsigned char initial_y = color ? white_king_initial_y : black_king_initial_y;
 
-    auto possible_king = board_data[king_initial_x][initial_y];
+    auto possible_king = board_data[{king_initial_x, initial_y}];
     if ((possible_king == nullptr) || (possible_king->get_color() != color) ||
         (possible_king->get_representation() != "Kg") || (possible_king->moved()) ||
         (board.is_threatened({4, initial_y}, color, turn, true))) {
@@ -14,7 +14,7 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
     }
 
     for (const auto &x : {left_rook_initial_x, right_rook_initial_x}) {
-        auto castling = board_data[x][initial_y];
+        auto castling = board_data[{x, initial_y}];
         if ((castling == nullptr) || (castling->get_color() != color) ||
             (castling->get_representation() != "Rk") || (castling->moved())) {
             continue;
@@ -22,8 +22,8 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
 
         short int movement = (x > king_initial_x) ? 1 : -1;
         bool valid = true;
-        for (short int current_x = king_initial_x + movement; current_x != x; current_x += movement) {
-            if ((board_data[current_x][initial_y] != nullptr) ||
+        for (auto current_x = (short int) (king_initial_x + movement); current_x != x; current_x += movement) {
+            if ((board_data[{current_x, initial_y}] != nullptr) ||
                 (((movement == 1) ? current_x <= king_initial_x + 2 : current_x >= king_initial_x - 2) &&
                  board.is_threatened({current_x, initial_y}, color, turn + 1, true))) {
                 valid = false;
@@ -32,12 +32,12 @@ set<play> MultiPiece::get_castling(const Board &board, Color color, unsigned int
         }
 
         if (valid) {
-            King king(*board_data[king_initial_x][initial_y]);
-            Rook rock(*board_data[x][initial_y]);
+            King king(*board_data[{king_initial_x, initial_y}]);
+            Rook rock(*board_data[{x, initial_y}]);
             king.do_move(turn, Point(king_initial_x + (movement * 2), initial_y));
             rock.do_move(turn, Point(king_initial_x + movement, initial_y));
-            plays.insert({{board_data[king_initial_x][initial_y], make_shared<King>(king)},
-                          {board_data[x][initial_y],              make_shared<Rook>(rock)}});
+            plays.insert({{board_data[{king_initial_x, initial_y}], make_shared<King>(king)},
+                          {board_data[{x, initial_y}],              make_shared<Rook>(rock)}});
         }
     }
 
@@ -48,22 +48,22 @@ set<play> MultiPiece::get_en_passant(const Board &board, Color color, unsigned i
     set<play> plays;
     const auto &board_data = board.get_board();
 
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if ((board_data[j][i] == nullptr) || (board_data[j][i]->get_color() != color) ||
-                (board_data[j][i]->get_representation() != "Pn"))
+    for (dimension i = 0; i < SIZE; i++) {
+        for (dimension j = 0; j < SIZE; j++) {
+            if ((board_data[{j, i}] == nullptr) || (board_data[{j, i}]->get_color() != color) ||
+                (board_data[{j, i}]->get_representation() != "Pn"))
                 continue;
             for (const auto &x : {-1, 1}) {
                 Point en_passant_point(j + x, i);
-                if (!en_passant_point.in_positive_range(SIZE, SIZE)) continue;
-                auto en_passant = board_data[en_passant_point.get_x()][en_passant_point.get_y()];
+                if (!board_data.contains(en_passant_point)) continue;
+                auto en_passant = board_data[en_passant_point];
                 if ((en_passant != nullptr) && (en_passant->get_color() != color) &&
                     (en_passant->get_representation() == "Pn") && (en_passant->count_moves() == 1) &&
                     (en_passant->get_move_turn() == turn - 1)) {
-                    Pawn pawn(*board_data[j][i]);
+                    Pawn pawn(*board_data[{j, i}]);
                     pawn.do_move(turn, en_passant_point + Point(0, pawn.get_move_direction()));
-                    plays.insert({{en_passant,       nullptr},
-                                  {board_data[j][i], make_shared<Pawn>(pawn)}});
+                    plays.insert({{en_passant,         nullptr},
+                                  {board_data[{j, i}], make_shared<Pawn>(pawn)}});
                 }
             }
         }
@@ -87,23 +87,19 @@ set<play> MultiPiece::get_plays(const Board &board, Color color, unsigned int tu
 
 bool MultiPiece::is_promotion(const Board &board, const Point &source, const Point &destination) {
     const auto &board_data = board.get_board();
-    auto piece = board_data[source.get_x()][source.get_y()];
+    auto piece = board_data[source];
     return ((piece->get_representation() == "Pn") && (destination.get_y() == (piece->get_color() ? 0 : 7)));
 }
 
 void MultiPiece::perform_promotion(Board &board, const Point &destination, const char promotion) {
     auto &board_data = board.get_mutable_board();
     if (promotion == 'q') {
-        board_data[destination.get_x()][destination.get_y()] = make_shared<Queen>(
-                *board_data[destination.get_x()][destination.get_y()]);
+        board_data[destination] = make_shared<Queen>(*board_data[destination]);
     } else if (promotion == 'r') {
-        board_data[destination.get_x()][destination.get_y()] = make_shared<Rook>(
-                *board_data[destination.get_x()][destination.get_y()]);
+        board_data[destination] = make_shared<Rook>(*board_data[destination]);
     } else if (promotion == 'b') {
-        board_data[destination.get_x()][destination.get_y()] = make_shared<Bishop>(
-                *board_data[destination.get_x()][destination.get_y()]);
+        board_data[destination] = make_shared<Bishop>(*board_data[destination]);
     } else if (promotion == 'n') {
-        board_data[destination.get_x()][destination.get_y()] = make_shared<Knight>(
-                *board_data[destination.get_x()][destination.get_y()]);
+        board_data[destination] = make_shared<Knight>(*board_data[destination]);
     }
 }

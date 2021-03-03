@@ -10,7 +10,7 @@ class Point {
 public:
     Point() : m_x(0), m_y(0) {}
 
-    Point(const Point &other);
+    Point(const Point &other) = default;
 
     Point(dimension x, dimension y);
 
@@ -23,8 +23,6 @@ public:
     bool operator==(const Point &other) const;
 
     bool operator<(const Point &other) const;
-
-    bool in_positive_range(dimension x, dimension y);
 
     [[nodiscard]] dimension get_x() const { return m_x; }
 
