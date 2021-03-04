@@ -6,18 +6,53 @@
 
 using namespace std;
 
+/**
+ * A class for storing two dimensional data.
+ *
+ * @tparam T    Type of data stored in the two dimensional vector.
+ */
 template<typename T>
 class TwoDimensionalVector {
 public:
+
+    /**
+     * Constructor.
+     *
+     * Initialize a two dimensional, fixed size vector (of vectors), with empty data.
+     *
+     * @param x Size of the first dimension.
+     * @param y Size of the second dimension.
+     */
     TwoDimensionalVector(size_t x, size_t y);
 
+    /**
+     * Subscript operator.
+     *
+     * @param point The index of the element to get.
+     * @return  The element in the given index.
+     */
     T &operator[](const Point &point);
 
+    /**
+     * Subscript operator.
+     *
+     * @param point The index of the element to get.
+     * @return  The element in the given index.
+     */
     const T &operator[](const Point &point) const;
 
+    /**
+     * Check if an index is inside the data's boundaries.
+     *
+     * @param point The index to check.
+     * @return  Is the index inside the boundaries.
+     */
     [[nodiscard]] bool contains(const Point &point) const;
 
+
 private:
+
+    /// The two dimensional data.
     vector<vector<T>> m_data;
 };
 

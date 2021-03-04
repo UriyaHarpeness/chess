@@ -8,7 +8,7 @@ import requests
 from typing import Optional
 
 
-def try_to_find_game():
+def try_to_find_game() -> Optional[io.StringIO]:
     try:
         random_game_id = random.randint(1, 2 ** 32)
         game = io.StringIO(

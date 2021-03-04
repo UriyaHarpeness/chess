@@ -7,6 +7,7 @@ const set<char> Local::promotion_options = {'q', 'r', 'b', 'n'};
 Point Local::moves_fast_match(const set<Point> &options, char input, bool &reselect, bool get) {
     reselect = false;
 #if AUTOFILL
+    // Only one option.
     if (options.size() == 1) {
         cout << (char) (options.begin()->get_x() + 'a') << options.begin()->get_y() + 1 << endl;
         return *options.begin();
@@ -15,6 +16,7 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
 
     set<Point> matches, final_matches;
 
+    // First reduction.
     do {
         do {
             if (get) {
@@ -40,6 +42,7 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
     cout << input;
 
 #if AUTOFILL
+    // Only one option left.
     if (matches.size() == 1) {
         cout << (char) (isalpha(input) ? (char) matches.begin()->get_y() + '0' + 1 :
                         (char) matches.begin()->get_x() + 'a') << endl;
@@ -47,6 +50,7 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
     }
 #endif // AUTOFILL
 
+    // Second reduction.
     do {
         final_matches.clear();
 
@@ -69,6 +73,7 @@ Point Local::moves_fast_match(const set<Point> &options, char input, bool &resel
 
     cout << input << endl;
 
+    // Final match.
     return *final_matches.begin();
 }
 
@@ -102,12 +107,11 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
     char promotion = 0;
     bool reselect;
 
+    // Get all options for source.
     set<Point> options;
     auto piece_options = get_keys(possible_moves);
     auto tmp = get_keys(possible_play_moves);
     piece_options.insert(tmp.begin(), tmp.end());
-
-    set<Point> piece_matches;
 
     // Loop until a valid action has been made.
     while (true) {
@@ -124,7 +128,7 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
             // Quit.
             return quit_turn;
         } else if (action == 'p') {
-            // Print.
+            // Print turns.
             cout << action << endl << "Turns: ";
             for (const auto &single_turn : turns) {
                 cout << (char) (get<0>(single_turn).get_x() + 'a') << get<0>(single_turn).get_y() + 1
@@ -136,11 +140,15 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
             }
             cout << endl << endl;
         } else {
+            // Moving pieces.
+
+            // Get source.
             cout << endl << "Enter source: ";
 
             Point source = moves_fast_match(piece_options, action, reselect);
             if (reselect) continue;
 
+            // Get all options for destination.
             options.clear();
             if (possible_moves.find(source) != possible_moves.end()) {
                 options.insert(possible_moves.at(source).begin(), possible_moves.at(source).end());
@@ -154,6 +162,8 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
                 optional_plays = possible_play_moves.at(source);
             }
             board.draw_board(options, optional_plays, source, turn);
+
+            // Get destination.
             cout << "Enter destination: ";
 
             Point destination = moves_fast_match(options, action, reselect, true);
@@ -168,6 +178,7 @@ Local::get_turn(Board &board, const vector<tuple<Point, Point, char>> &turns, ma
                 cout << promotion << endl;
             }
 
+            // Return the turn.
             return {source, destination, promotion};
         }
     }

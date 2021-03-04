@@ -10,9 +10,23 @@
 
 using namespace std;
 
+/**
+ * A client player.
+ * Connects to a socket to the other player.
+ */
 class Client : public NetworkPlayer {
 public:
+
+    /**
+     * Constructor.
+     *
+     * @param address   The address to connect to.
+     * @param port      The port to connect to.
+     */
     Client(const string &address, int port);
 
+    /**
+     * Destructor.
+     */
     ~Client() = default;
 };

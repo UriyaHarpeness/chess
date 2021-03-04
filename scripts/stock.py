@@ -7,6 +7,9 @@ from stockfish import Stockfish
 
 
 class Player(abc.ABC):
+    """
+    An abstract class for player.
+    """
     QUIT_MOVE = 'a1a1'
 
     def __init__(self, first: bool, host: str, port: int, skill_level: Optional[int], depth: Optional[int]):
@@ -76,6 +79,7 @@ class Client(Player):
     def __init__(self, first: bool, host: str, port: int, skill_level: Optional[int], depth: Optional[int]):
         super().__init__(first, host, port, skill_level, depth)
 
+        # Connect to a server.
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
 
@@ -87,6 +91,7 @@ class Server(Player):
     def __init__(self, first: bool, host: str, port: int, skill_level: Optional[int], depth: Optional[int]):
         super().__init__(first, host, port, skill_level, depth)
 
+        # Accept and connect to a client.
         accepting_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         accepting_socket.bind((self.host, self.port))
         accepting_socket.listen()

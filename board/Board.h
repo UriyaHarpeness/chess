@@ -39,7 +39,7 @@ public:
     /**
      * Constructor.
      *
-     * Initializes the board with the pieces in their initial positions.
+     * Initialize the board with the pieces in their initial positions.
      */
     Board();
 
@@ -65,7 +65,7 @@ public:
     /**
      * Print a number index.
      *
-     * Prints the given number after padding it to a fixed size with colors.
+     * Print the given number after padding it to a fixed size with colors.
      *
      * @param i The index value to print.
      */
@@ -74,7 +74,7 @@ public:
     /**
      * Print a character index.
      *
-     * Prints the given character after padding it to a fixed size with colors.
+     * Print the given character after padding it to a fixed size with colors.
      *
      * @param i The index value to print.
      */
@@ -152,7 +152,7 @@ public:
     /**
      * Get threatened positions of all the given normal and play moves.
      *
-     * Checks if the piece chosen to move is threatened in its final position for each of the given moves.
+     * Check if the piece chosen to move is threatened in its final position for each of the given moves.
      *
      * @param possible_moves    The possible normal moves.
      * @param possible_plays    The possible play moves.

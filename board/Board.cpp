@@ -213,6 +213,7 @@ Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &
                       unsigned int turn) {
     set<Point> threatened;
 
+    // Get pieces threatened by normal moves.
     for (const auto &move : possible_moves) {
         shared_ptr<Piece> original = m_board[move];
         do_move(turn, chosen, move);
@@ -222,6 +223,7 @@ Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &
         undo_move(chosen, move, original);
     }
 
+    // Get pieces threatened by play moves.
     for (const auto &single_play : possible_plays) {
         auto move = single_play.first;
         const auto endangered_pieces = get_endangered_pieces(single_play.second);
@@ -236,6 +238,7 @@ Board::get_threatened(const set<Point> &possible_moves, const map<Point, play> &
 }
 
 bool Board::is_threatened(const Point &position, Color color, unsigned int turn, bool threatening) const {
+    // Check if the position is threatened by normal moves.
     const map<Point, set<Point>> possible_moves = get_possible_moves(color ? BLACK : WHITE);
     if (any_of(possible_moves.begin(), possible_moves.end(), [&position](const auto &moves) {
         return any_of(moves.second.begin(), moves.second.end(),
@@ -244,6 +247,7 @@ bool Board::is_threatened(const Point &position, Color color, unsigned int turn,
         return true;
     }
 
+    // Check if the position is threatened by play moves.
     map<Point, map<Point, play>> possible_play_moves;
     const auto possible_plays = MultiPiece::get_plays(*this, color ? BLACK : WHITE, turn + 1, threatening);
     for (const auto &possible_play : possible_plays) {
@@ -264,10 +268,13 @@ bool Board::is_threatened(const shared_ptr<Piece> &piece, unsigned int turn, boo
 
 set<Point> Board::get_threatened(Color color, unsigned int turn) const {
     set<Point> threatened;
+
+    // Get positions threatened by normal moves.
     const map<Point, set<Point>> possible_moves = get_possible_moves(color ? BLACK : WHITE);
     for_each(possible_moves.begin(), possible_moves.end(),
              [&threatened](const auto &moves) { threatened.insert(moves.second.begin(), moves.second.end()); });
 
+    // Get positions threatened by play moves.
     map<Point, map<Point, play>> possible_play_moves;
     const auto possible_plays = MultiPiece::get_plays(*this, color ? BLACK : WHITE, turn + 1, true);
     for (const auto &possible_play : possible_plays) {
@@ -284,16 +291,17 @@ set<Point> Board::get_threatened(Color color, unsigned int turn) const {
 void
 Board::filter_illegal_moves(map<Point, set<Point>> &possible_moves, map<Point, map<Point, play>> &possible_play_moves,
                             Color color, unsigned int turn) {
+    // Filter illegal normal moves.
     for (auto moves = possible_moves.begin(); moves != possible_moves.end();) {
         for (auto move = moves->second.begin(); move != moves->second.end();) {
             auto source = moves->first, destination = *move;
             shared_ptr<Piece> original = m_board[destination];
             do_move(turn, source, destination);
-            const auto king_position = find_king(color);
-            bool king_threatened = is_threatened(king_position, color, turn, true);
+            bool king_threatened = is_threatened(find_king(color), color, turn, true);
             undo_move(source, destination, original);
 
             if (king_threatened) {
+                // Move is illegal.
                 move = moves->second.erase(move);
             } else {
                 move++;
@@ -307,6 +315,7 @@ Board::filter_illegal_moves(map<Point, set<Point>> &possible_moves, map<Point, m
         }
     }
 
+    // Filter illegal play moves.
     for (auto possible_plays = possible_play_moves.begin(); possible_plays != possible_play_moves.end();) {
         for (auto possible_play = possible_plays->second.begin(); possible_play != possible_plays->second.end();) {
             const auto endangered_pieces = get_endangered_pieces(possible_play->second);
@@ -316,6 +325,7 @@ Board::filter_illegal_moves(map<Point, set<Point>> &possible_moves, map<Point, m
             undo_move(endangered_pieces, possible_play->second);
 
             if (king_threatened) {
+                // Move is illegal.
                 possible_play = possible_plays->second.erase(possible_play);
             } else {
                 possible_play++;
