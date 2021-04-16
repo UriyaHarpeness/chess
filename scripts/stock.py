@@ -26,7 +26,6 @@ class Player(abc.ABC):
             depth: Depth to search for best move for stockfish.
             stockfish: Path to the stockfish executable to use.
         """
-        # Downloaded from https://stockfishchess.org/download/
         self.player_turn = first
         self.host = host
         self.port = port

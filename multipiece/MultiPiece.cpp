@@ -58,7 +58,7 @@ set<play> MultiPiece::get_en_passant(const Board &board, Color color, unsigned i
     unsigned char pawn_first_move_double_y = color ? DestinationPositions::white_pawn_first_move_double_y
                                                    : DestinationPositions::black_pawn_first_move_double_y;
 
-    // Scan the row..
+    // Scan the row.
     for (dimension x = 0; x < SIZE; x++) {
         // Only a pawn can perform an en passant.
         if ((board_data[{x, pawn_first_move_double_y}] == nullptr) ||
