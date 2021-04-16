@@ -19,6 +19,7 @@ void Game::setup_turns(const string &pre_turns) {
     vector<turn_t> turns;
     vector<vector<turn_t>> turns_options;
     if (!pre_turns.empty()) {
+        // Parse the supplied turns.
         vector<string> split_arguments;
         int index = 0, new_index;
         do {
@@ -34,6 +35,7 @@ void Game::setup_turns(const string &pre_turns) {
         turns_options.push_back(turns);
     }
 
+    // Sync the pre turns with the other players.
     m_white_player->forward_turns(turns);
     m_black_player->forward_turns(turns);
     auto white_turns = m_white_player->get_turns();
@@ -44,6 +46,7 @@ void Game::setup_turns(const string &pre_turns) {
     if (!black_turns.empty()) {
         turns_options.push_back(black_turns);
     }
+
     m_white_player->forward_turns(black_turns);
     m_black_player->forward_turns(white_turns);
     white_turns = m_white_player->get_turns();
@@ -55,10 +58,12 @@ void Game::setup_turns(const string &pre_turns) {
         turns_options.push_back(black_turns);
     }
 
+    // Only on e player is allowed to specify pre turns.
     if (turns_options.size() > 1) {
         throw runtime_error("Too many players setting turns (max 1)");
     }
 
+    // Set the pre turns.
     if (!turns_options.empty()) {
         m_pre_turns = move(turns_options[0]);
     }
@@ -69,7 +74,8 @@ void Game::turn(GameStatus &status, Color color) {
     set<Point> piece_options;
     set<Point> options;
 
-    map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color, m_turn);
+    // Get all the possible moves.
+    map<Point, set<Point>> possible_moves = m_board.get_possible_moves(color);
     map<Point, map<Point, play>> possible_play_moves;
     const auto possible_plays = MultiPiece::get_plays(m_board, color, m_turn, false);
     for (const auto &possible_play : possible_plays) {
@@ -81,19 +87,24 @@ void Game::turn(GameStatus &status, Color color) {
         }
     }
 
+    // Filter moves that are illegal.
     m_board.filter_illegal_moves(possible_moves, possible_play_moves, color, m_turn);
 
+    // Get the locations of pieces that can be moved.
     piece_options = Player::get_keys(possible_moves);
     auto tmp = Player::get_keys(possible_play_moves);
     piece_options.insert(tmp.begin(), tmp.end());
 
-    const auto king_position = m_board.find_king(color);
-    const bool king_threatened = m_board.is_threatened(king_position, color, m_turn, true);
+    // Check if the king is threatened.
+    const bool king_threatened = m_board.is_threatened(m_board.find_king(color), color, m_turn, true);
 
+    // No turns can be done.
     if (piece_options.empty()) {
         if (king_threatened) {
+            // The game ends with checkmate.
             status = color ? BLACK_WIN : WHITE_WIN;
         } else {
+            // The game ends with stalemate.
             status = PAT;
         }
         return;

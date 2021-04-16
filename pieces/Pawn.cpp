@@ -5,14 +5,14 @@ set<Point> Pawn::get_possible_positions(const BoardData &board) const {
 
     // Normal move.
     auto relative = get_position() + Point(0, get_move_direction());
-    if (relative.in_positive_range(SIZE, SIZE) && (board[relative.get_x()][relative.get_y()] == nullptr)) {
+    if (board.contains(relative) && (board[relative] == nullptr)) {
         possible_positions.insert(relative);
     }
 
     // First move.
     if (!moved() && !possible_positions.empty()) {
         relative += Point(0, get_move_direction());
-        if (relative.in_positive_range(SIZE, SIZE) && (board[relative.get_x()][relative.get_y()] == nullptr)) {
+        if (board.contains(relative) && (board[relative] == nullptr)) {
             possible_positions.insert(relative);
         }
     }
@@ -20,8 +20,8 @@ set<Point> Pawn::get_possible_positions(const BoardData &board) const {
     // Capture move.
     for (const auto &x : {-1, 1}) {
         relative = get_position() + Point(x, get_move_direction());
-        if (relative.in_positive_range(SIZE, SIZE) && (board[relative.get_x()][relative.get_y()] != nullptr) &&
-            (board[relative.get_x()][relative.get_y()]->get_color() != m_color)) {
+        if (board.contains(relative) && (board[relative] != nullptr) &&
+            (board[relative]->get_color() != m_color)) {
             possible_positions.insert(relative);
         }
     }

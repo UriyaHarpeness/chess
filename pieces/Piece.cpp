@@ -8,23 +8,26 @@ set<Point> Piece::get_possible_positions(const BoardData &board) const {
     set<Point> possible_positions;
 
     Point relative;
+
+    // Get vector positions.
     for (const auto &move : get_move_vector()) {
-        for (relative = get_position(), relative += move; relative.in_positive_range(SIZE, SIZE) &&
-                                                          (board[relative.get_x()][relative.get_y()] ==
-                                                           nullptr); relative += move) {
+        // Empty squares.
+        for (relative = get_position(), relative += move;
+             board.contains(relative) && (board[relative] == nullptr); relative += move) {
             possible_positions.insert(relative);
         }
-        if (relative.in_positive_range(SIZE, SIZE) && (board[relative.get_x()][relative.get_y()] != nullptr) &&
-            (board[relative.get_x()][relative.get_y()]->get_color() != m_color)) {
+        // Squares containing the opponent's color.
+        if (board.contains(relative) && (board[relative] != nullptr) &&
+            (board[relative]->get_color() != m_color)) {
             possible_positions.insert(relative);
         }
     }
 
+    // Get relative positions.
     for (const auto &move : get_move_relative()) {
         relative = get_position() + move;
-        if (relative.in_positive_range(SIZE, SIZE) && ((board[relative.get_x()][relative.get_y()] == nullptr) ||
-                                                       (board[relative.get_x()][relative.get_y()]->get_color() !=
-                                                        m_color))) {
+        // Empty squares or squares containing the opponent's color.
+        if (board.contains(relative) && ((board[relative] == nullptr) || (board[relative]->get_color() != m_color))) {
             possible_positions.insert(relative);
         }
     }
