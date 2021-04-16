@@ -1,14 +1,21 @@
 import argparse
-import chess.pgn
 import concurrent.futures
 import io
 import multiprocessing
 import random
-import requests
 from typing import Optional
+
+import requests
+import chess.pgn
 
 
 def try_to_find_game() -> Optional[io.StringIO]:
+    """
+    Randomly try and get a chess game.
+
+    Returns:
+        The game if such found.
+    """
     try:
         random_game_id = random.randint(1, 2 ** 32)
         game = io.StringIO(
@@ -21,10 +28,16 @@ def try_to_find_game() -> Optional[io.StringIO]:
 
 
 def get_chess_game(game_id: Optional[int]):
+    """
+    Get a chess game.
+
+    Args:
+        game_id: The ID of the game, if not specified, tries and guesses random IDs.
+    """
     if game_id is not None:
         game = io.StringIO(
             requests.post(url='https://www.chessgames.com/perl/nph-chesspgn',
-                          data=f'text=1&gid={game_id if game_id is not None else random_game_id}').text)
+                          data=f'text=1&gid={game_id}').text)
     else:
         game = None
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -45,7 +58,7 @@ def main():
     args = parser.parse_args()
 
     if args.game_id is None:
-        print(f'Retrieving random chess game.')
+        print('Retrieving random chess game.')
     else:
         print(f'Retrieving chess game {args.game_id}.')
 
